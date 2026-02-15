@@ -1,0 +1,21 @@
+# contracts/buf.gen.yaml
+version: v2
+inputs:
+  - directory: proto # contracts/proto/ is the buf module
+plugins:
+  # Go: protobuf types
+  - remote: buf.build/protocolbuffers/go
+    out: go # → contracts/go/
+    opt: paths=source_relative
+  # Go: Connect RPC stubs
+  - remote: buf.build/connectrpc/go
+    out: go # → contracts/go/
+    opt: paths=source_relative
+  # TypeScript: protobuf types (Protobuf-ES)
+  - remote: buf.build/bufbuild/es
+    out: ts # → contracts/ts/
+    opt: target=ts
+  # TypeScript: Connect RPC stubs
+  - remote: buf.build/connectrpc/es
+    out: ts # → contracts/ts/
+    opt: target=ts

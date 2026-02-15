@@ -1,0 +1,3 @@
+version: v2
+modules:
+  - path: contracts/proto # the only proto module in this repo

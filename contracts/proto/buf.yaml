@@ -1,0 +1,9 @@
+version: v2
+lint:
+  use:
+    - STANDARD # enforce standard proto style rules
+  except:
+    - PACKAGE_VERSION_SUFFIX # allow packages without _v1 suffix if preferred
+breaking:
+  use:
+    - FILE # detect field removal, type changes, etc.
