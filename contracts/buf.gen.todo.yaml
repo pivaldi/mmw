@@ -1,0 +1,15 @@
+# contracts/buf.gen.todo.yaml - Generate only Todo API
+version: v2
+managed:
+  enabled: false
+inputs:
+  - directory: proto/todo # Point directly to todo proto directory
+plugins:
+  # Go: protobuf types
+  - remote: buf.build/protocolbuffers/go
+    out: go/todo # → contracts/go/todo/
+    opt: paths=source_relative
+  # Go: Connect RPC stubs
+  - remote: buf.build/connectrpc/go
+    out: go/todo # → contracts/go/todo/
+    opt: paths=source_relative
