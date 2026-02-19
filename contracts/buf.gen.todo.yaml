@@ -3,13 +3,15 @@ version: v2
 managed:
   enabled: false
 inputs:
-  - directory: proto/todo # Point directly to todo proto directory
+  - directory: .
+    paths:
+      - proto/todo
 plugins:
   # Go: protobuf types
   - remote: buf.build/protocolbuffers/go
-    out: go/todo # → contracts/go/todo/
+    out: gen/go # → contracts/gen/go/
     opt: paths=source_relative
   # Go: Connect RPC stubs
   - remote: buf.build/connectrpc/go
-    out: go/todo # → contracts/go/todo/
+    out: gen/go # → contracts/gen/go/
     opt: paths=source_relative

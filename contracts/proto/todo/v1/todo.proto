@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package todo.v1;
 
-option go_package = "github.com/pivaldi/mmw/contracts/go/todo/v1;todov1";
-
 import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/pivaldi/mmw/contracts/gen/go/todo/v1;todov1";
 
 // TodoService provides CRUD operations for managing todos
 service TodoService {

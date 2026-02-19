@@ -5,17 +5,17 @@ inputs:
 plugins:
   # Go: protobuf types
   - remote: buf.build/protocolbuffers/go
-    out: go # → contracts/go/
+    out: gen/go # → contracts/gen/go/
     opt: paths=source_relative
   # Go: Connect RPC stubs
   - remote: buf.build/connectrpc/go
-    out: go # → contracts/go/
+    out: gen/go # → contracts/gen/go/
     opt: paths=source_relative
   # TypeScript: protobuf types (Protobuf-ES)
   - remote: buf.build/bufbuild/es
-    out: ts # → contracts/ts/
+    out: gen/ts # → contracts/gen/ts/
     opt: target=ts
   # TypeScript: Connect RPC stubs
   - remote: buf.build/connectrpc/es
-    out: ts # → contracts/ts/
+    out: gen/ts # → contracts/gen/ts/
     opt: target=ts
