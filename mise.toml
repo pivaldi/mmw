@@ -1,0 +1,225 @@
+# Mise configuration for POC monorepo root
+# https://mise.jdx.dev/
+
+[settings]
+# task_output = "quiet"
+
+[hooks]
+preinstall = "echo 'Nothing to do in preinstall'"
+# postinstall = [
+#   "mise generate git-pre-commit --task=pre-commit --write",
+#   "mise run setup",
+#   "mise run doctor"
+# ]
+
+[env]
+# Load .envrc if present (mise will ignore if missing)
+_.file = '.envrc'
+APP_ENV = { required = true }
+
+[shell_alias]
+mr = "mise run"
+
+# Tool versions
+[tools.go]
+version = "latest"
+postinstall = "./scripts/install-tools.sh"
+
+[tools.golangci-lint]
+version = "latest"
+
+# Global tasks
+
+[tasks."todo:test"]
+description = "Run all tests in todo service"
+run = """
+cd services/todo
+mise run test
+"""
+
+[tasks."todo:test:coverage"]
+description = "Run tests with coverage in todo service"
+run = """
+cd services/todo
+mise run test:coverage
+"""
+
+[tasks."todo:test:integration"]
+description = "Run integration tests in todo service"
+run = """
+cd services/todo
+mise run test:integration
+"""
+
+[tasks."todo:build"]
+description = "Build todo service"
+run = """
+cd services/todo
+mise run build
+"""
+
+[tasks."todo:run"]
+description = "Run todo service"
+run = """
+cd services/todo
+mise run run
+"""
+
+[tasks."todo:generate"]
+description = "Generate code for todo service"
+run = """
+cd services/todo
+mise run generate
+"""
+
+[tasks."todo:lint"]
+description = "Run linter on todo service"
+run = """
+cd services/todo
+mise run lint
+"""
+
+[tasks."ogl:test"]
+description = "Run tests in ogl library"
+run = """
+cd libs/ogl
+mise run test
+"""
+
+[tasks."ogl:test:coverage"]
+description = "Run tests with coverage in ogl library"
+run = """
+cd libs/ogl
+mise run test:coverage
+"""
+
+[tasks."test:all"]
+depends = ["todo:test", "ogl:test"]
+description = "Run all tests in the monorepo"
+run = "true"
+
+[tasks.lint]
+description = "Run linter on all projects"
+run = """
+echo "Linting ogl library..."
+cd libs/ogl && golangci-lint run ./...
+cd ../..
+
+echo ""
+echo "Linting todo service..."
+cd services/todo && golangci-lint run ./...
+"""
+
+[tasks."lint:verify-config"]
+description = "Verify golangci-lint configuration"
+run = "golangci-lint --verbose config verify"
+
+[tasks.deps]
+description = "Analyze dependencies with goda"
+run = """
+echo "Analyzing workspace dependencies..."
+goda graph "./..."
+"""
+
+[tasks."deps:tree"]
+description = "Show dependency tree"
+run = """
+echo "Dependency tree for workspace:"
+goda tree "./..."
+"""
+
+[tasks."deps:list"]
+description = "List all dependencies"
+run = """
+echo "All dependencies in workspace:"
+goda list "./..."
+"""
+
+[tasks."deps:services"]
+description = "Show dependencies between services and libs"
+run = """
+echo "Service dependencies:"
+goda graph "./services/..."
+echo ""
+echo "Library dependencies:"
+goda graph "./libs/..."
+"""
+
+[tasks."deps:visualize"]
+description = "Generate visual dependency tree with dep-tree"
+run = """
+echo "Generating dependency tree visualization..."
+dep-tree entrypoint ./services/todo/cmd/todo/main.go
+"""
+
+[tasks."deps:visualize:ogl"]
+description = "Generate dependency tree for ogl library"
+run = """
+echo "Generating ogl library dependency tree..."
+dep-tree entrypoint ./libs/ogl/config/config.go
+"""
+
+[tasks."deps:circular"]
+description = "Check for circular dependencies"
+run = """
+echo "Checking for circular dependencies..."
+dep-tree entrypoint ./services/todo/cmd/todo/main.go --check-cycles
+"""
+
+[tasks.generate]
+description = "Generate code for all projects"
+run = """
+echo "Generating code for todo service..."
+cd services/todo && mise run generate
+"""
+
+[tasks.clean]
+description = "Clean all build artifacts"
+run = """
+echo "Cleaning todo service..."
+cd services/todo && mise run clean || true
+cd ../..
+
+echo "Cleaning ogl library..."
+cd libs/ogl && mise run clean || true
+"""
+
+[tasks.fmt]
+description = "Format all Go code"
+run = """
+echo "Formatting all Go code in workspace..."
+go fmt ./...
+"""
+
+[tasks."workspace:status"]
+description = "Show workspace module status"
+run = """
+echo "Workspace modules:"
+go work use
+echo ""
+echo "Module verification:"
+go work sync
+go mod verify
+"""
+
+[tasks."workspace:tidy"]
+description = "Tidy all modules in workspace"
+run = """
+echo "Tidying ogl library..."
+cd libs/ogl && go mod tidy
+cd ../..
+
+echo "Tidying todo service..."
+cd services/todo && go mod tidy
+cd ../..
+
+echo "Syncing workspace..."
+go work sync
+"""
+
+[tasks.help]
+description = "Display available tasks"
+run = """
+echo "Available tasks:"
+mise tasks
+"""

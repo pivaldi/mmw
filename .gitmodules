@@ -1,3 +1,6 @@
 [submodule "services/todo"]
 	path = services/todo
 	url = https://github.com/pivaldi/mmw-todo
+[submodule "libs/ogl"]
+	path = libs/ogl
+	url = https://github.com/ovya/ogl.git

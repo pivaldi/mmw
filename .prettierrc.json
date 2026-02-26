@@ -1,0 +1,30 @@
+{
+  "semi": true,
+  "trailingComma": "all",
+  "singleQuote": true,
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 124,
+  "overrides": [
+    {
+      "files": "*.html",
+      "options": {
+        "parser": "angular"
+      }
+    },
+    {
+      "files": ["*.phtml"],
+      "options": {
+        "parser": "go-template"
+      }
+    },
+    {
+      "files": ["*.sql"],
+      "options": {
+        "language": "postgresql",
+        "formatter": "sql-formatter"
+      }
+    }
+  ],
+  "plugins": ["prettier-plugin-sql", "prettier-plugin-go-template", "prettier-plugin-toml"]
+}
