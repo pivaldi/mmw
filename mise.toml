@@ -2,6 +2,7 @@
 # https://mise.jdx.dev/
 
 [settings]
+experimental = true
 # task_output = "quiet"
 
 [hooks]
