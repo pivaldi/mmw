@@ -83,6 +83,7 @@ description = "Install and Update Needed Tools"
 run = "UPDATE=true {{config_root}}/stow/common/scripts/common/install-tools-ss.sh"
 
 [tasks.pre-commit]
+depends = ["arch:check"]
 description = "Pre-commit checks (can be run manually or as git hook)"
 run = "APP_ROOT_PATH={{config_root}} {{config_root}}/stow/common/scripts/common/pre-commit.sh"
 alias = "pc"
@@ -218,6 +219,13 @@ run = """
   dep-tree entrypoint ./libs/ogl/config/config.go
   """
 
+[tasks."arch:check"]
+description = "Validate architectural boundaries across entire monorepo"
+run = """
+  cd {{config_root}} || exit 1
+  go run ./tools/arch-test
+  """
+
 [tasks."deps:circular"]
 description = "Check for circular dependencies"
 run = """
@@ -301,13 +309,6 @@ run = """
 
   echo "Syncing workspace..."
   go work sync
-  """
-
-[tasks."arch:check"]
-description = "Validate architectural boundaries across entire monorepo"
-run = """
-  cd {{config_root}} || exit 1
-  go run ./tools/arch-test
   """
 
 [tasks.help]
