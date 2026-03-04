@@ -1,0 +1,106 @@
+version: 1
+
+# arch-go Configuration for Go Service Architecture Validation
+# This template enforces Clean Architecture principles for Go services
+
+# Exclude common directories from analysis
+excludedPaths:
+  - "vendor/**"
+  - "**/*_test.go"
+  - "**/mocks/**"
+  - "**/testdata/**"
+
+# Architecture dependency rules
+dependencyRules:
+  # Service Isolation Rules
+  # Services should not import from each other
+  - package: "**.services.**"
+    shouldNotDependOn:
+      - "**.services.**.domain.**"
+      - "**.services.**.application.**"
+      - "**.services.**.adapters.**"
+    description: "Services must be isolated - no cross-service imports"
+
+  # Domain Layer Rules (Innermost - Pure Business Logic)
+  # Domain should have NO external dependencies
+  - package: "**.domain.**"
+    shouldNotDependOn:
+      - "**.application.**"
+      - "**.adapters.**"
+      - "**.infrastructure.**"
+    description: "Domain layer must be pure - no dependencies on outer layers"
+
+  # Application Layer Rules (Use Cases / Business Operations)
+  # Application can depend on Domain but not Adapters
+  - package: "**.application.**"
+    shouldOnlyDependOn:
+      - "**.domain.**"
+    shouldNotDependOn:
+      - "**.adapters.**"
+      - "**.infrastructure.**"
+    description: "Application layer can only depend on domain layer"
+
+  # Adapter Direction Rules
+  # Adapters implement interfaces defined in inner layers
+  - package: "**.adapters.primary.**"
+    shouldOnlyDependOn:
+      - "**.application.**"
+      - "**.domain.**"
+    description: "Primary adapters (controllers/handlers) depend on application and domain"
+
+  - package: "**.adapters.secondary.**"
+    shouldOnlyDependOn:
+      - "**.domain.**"
+    description: "Secondary adapters (repositories/clients) depend only on domain interfaces"
+
+  # Infrastructure Layer Rules
+  # Infrastructure can depend on anything (wiring/composition)
+  - package: "**.infrastructure.**"
+    description: "Infrastructure layer wires everything together"
+
+# Function naming conventions
+functions:
+  - package: "**.domain.**"
+    shouldNotContain:
+      - "HTTP"
+      - "SQL"
+      - "Redis"
+      - "Kafka"
+    description: "Domain should not reference infrastructure concerns"
+
+# Content rules to prevent architectural violations
+contents:
+  # Domain purity - no HTTP, database, or infrastructure imports
+  - package: "**.domain.**"
+    shouldNotContain:
+      - "net/http"
+      - "database/sql"
+      - "github.com/gin-gonic"
+      - "gorm.io/gorm"
+      - "go.mongodb.org"
+    description: "Domain must not import HTTP, database, or framework packages"
+
+  # Application purity - no HTTP or direct database access
+  - package: "**.application.**"
+    shouldNotContain:
+      - "net/http"
+      - "github.com/gin-gonic"
+      - "gorm.io/gorm"
+    description: "Application layer should not import HTTP frameworks or ORMs directly"
+
+# Naming conventions for architecture components
+namingRules:
+  - package: "**.domain.**"
+    interfaceImplementationNamingRule:
+      shouldBeginWith: "Domain"
+    description: "Domain types should be prefixed with 'Domain'"
+
+  - package: "**.adapters.primary.**"
+    interfaceImplementationNamingRule:
+      shouldEndWith: "Handler"
+    description: "Primary adapters should end with 'Handler'"
+
+  - package: "**.adapters.secondary.**"
+    interfaceImplementationNamingRule:
+      shouldEndWith: "Adapter"
+    description: "Secondary adapters should end with 'Adapter'"

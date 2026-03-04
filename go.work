@@ -4,4 +4,5 @@ use (
 	./contracts
 	./libs/ogl
 	./services/todo
+	./tools/arch-test
 )

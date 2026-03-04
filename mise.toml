@@ -6,12 +6,9 @@ experimental = true
 # task_output = "quiet"
 
 [hooks]
-preinstall = "echo 'Nothing to do in preinstall'"
-# postinstall = [
-#   "mise generate git-pre-commit --task=pre-commit --write",
-#   "mise run setup",
-#   "mise run doctor"
-# ]
+postinstall = [
+  "mise generate git-pre-commit --task=pre-commit --write",
+]
 
 [env]
 # Load .envrc if present (mise will ignore if missing)
@@ -24,7 +21,6 @@ mr = "mise run"
 # Tool versions
 [tools.go]
 version = "latest"
-postinstall = "./scripts/install-tools.sh"
 
 [tools.golangci-lint]
 version = "latest"
@@ -217,6 +213,10 @@ cd ../..
 echo "Syncing workspace..."
 go work sync
 """
+
+[tasks."arch:check"]
+description = "Validate architectural boundaries across entire monorepo"
+run = "go run ./tools/arch-test"
 
 [tasks.help]
 description = "Display available tasks"
