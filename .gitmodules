@@ -4,3 +4,6 @@
 [submodule "libs/ogl"]
 	path = libs/ogl
 	url = https://github.com/ovya/ogl.git
+[submodule "stow/common/scripts/common/libs/bash-stepper"]
+	path = scripts/libs/bash-stepper
+	url = https://github.com/pivaldi/bash-stepper

@@ -104,7 +104,7 @@ find "$TARGET_DIR" -type l | while read -r link; do
     # CHECK: Does the real path start with our stow-central path?
     if [[ "$REAL_PATH" == "$STOW_ABS_PATH"* ]]; then
         echo "Valid Stow link found: $link -> $REAL_PATH"
-        
+
         # Remove the link
         rm "$link"
 
