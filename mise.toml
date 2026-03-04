@@ -70,6 +70,10 @@ run = """
   done
   """
 
+[tasks."stow:un-stow"]
+description = '"materializing" or "de-stowing" the stow shared components'
+run = "{{config_root}}/scripts/un-stow.sh {{config_root}}"
+
 [tasks.tools]
 description = "Install Needed Tools"
 run = "{{config_root}}/stow/common/scripts/common/install-tools-ss.sh"
