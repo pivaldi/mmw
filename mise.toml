@@ -3,12 +3,11 @@
 
 [settings]
 experimental = true
-# task_output = "quiet"
+quiet = true
 
-[hooks]
-postinstall = [
-  "mise generate git-pre-commit --task=pre-commit --write",
-]
+[tools]
+go = "latest"
+golangci-lint = "latest"
 
 [env]
 # Load .envrc if present (mise will ignore if missing)
@@ -18,77 +17,134 @@ APP_ENV = { required = true }
 [shell_alias]
 mr = "mise run"
 
-# Tool versions
-[tools.go]
-version = "latest"
-
-[tools.golangci-lint]
-version = "latest"
-
 # Global tasks
+
+[tasks.setup]
+depends= ["stow"]
+description = "Soft setup of the project"
+run = """
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.doing 'Synchronize Go Workspace'
+  st.do go work sync
+  st.done
+  st.doing "Go Mod Tidy"
+  st.do go mod tidy
+  st.done
+  st.doing "Go Mod Download"
+  st.do go mod download
+  st.done
+  """
+
+[tasks."stow"]
+description = "Sync central scripts to all service modules"
+run = """
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.doing 'Copying gited lib to stow common package'
+  st.do command cp -f -- scripts/libs/bash-stepper/st.bash stow/common/scripts/common/libs/
+  st.done
+
+  st.h1 'Stowing Services'
+  for dir in services/*/; do
+  st.doing "Creating ${dir}scripts/"
+  [ -e "${dir}scripts/" ] && st.nothing || {
+  st.do mkdir -p "${dir}scripts/"
+  st.done
+  }
+
+  st.doing "stow unlinks to prevent conflicts: $dir"
+  st.do stow --dir=stow --target="$dir" -D common
+  st.done
+  st.doing "stow relinks: $dir"
+  st.do stow --dir=stow --target="$dir" common
+  st.done
+  done
+  """
+
+[tasks.tools]
+description = "Install Needed Tools"
+run = "{{config_root}}/stow/common/scripts/common/install-tools-ss.sh"
+
+[tasks."tools:update"]
+description = "Install and Update Needed Tools"
+run = "UPDATE=true {{config_root}}/stow/common/scripts/common/install-tools-ss.sh"
+
+[tasks.pre-commit]
+description = "Pre-commit checks (can be run manually or as git hook)"
+run = "APP_ROOT_PATH={{config_root}} {{config_root}}/stow/common/scripts/common/pre-commit.sh"
+alias = "pc"
 
 [tasks."todo:test"]
 description = "Run all tests in todo service"
 run = """
-cd services/todo
-mise run test
-"""
+  cd services/todo
+  mise run test
+  """
 
 [tasks."todo:test:coverage"]
 description = "Run tests with coverage in todo service"
 run = """
-cd services/todo
-mise run test:coverage
-"""
+  cd services/todo
+  mise run test:coverage
+  """
 
 [tasks."todo:test:integration"]
 description = "Run integration tests in todo service"
 run = """
-cd services/todo
-mise run test:integration
-"""
+  cd services/todo
+  mise run test:integration
+  """
 
 [tasks."todo:build"]
 description = "Build todo service"
 run = """
-cd services/todo
-mise run build
-"""
+  cd services/todo
+  mise run build
+  """
 
 [tasks."todo:run"]
 description = "Run todo service"
 run = """
-cd services/todo
-mise run run
-"""
+  cd services/todo
+  mise run run
+  """
 
 [tasks."todo:generate"]
 description = "Generate code for todo service"
 run = """
-cd services/todo
-mise run generate
-"""
+  cd services/todo
+  mise run generate
+  """
 
 [tasks."todo:lint"]
 description = "Run linter on todo service"
 run = """
-cd services/todo
-mise run lint
-"""
+  cd services/todo
+  mise run lint
+  """
 
 [tasks."ogl:test"]
 description = "Run tests in ogl library"
 run = """
-cd libs/ogl
-mise run test
-"""
+  cd libs/ogl
+  mise run test
+  """
 
 [tasks."ogl:test:coverage"]
 description = "Run tests with coverage in ogl library"
 run = """
-cd libs/ogl
-mise run test:coverage
-"""
+  cd libs/ogl
+  mise run test:coverage
+  """
 
 [tasks."test:all"]
 depends = ["todo:test", "ogl:test"]
@@ -98,129 +154,166 @@ run = "true"
 [tasks.lint]
 description = "Run linter on all projects"
 run = """
-echo "Linting ogl library..."
-cd libs/ogl && golangci-lint run ./...
-cd ../..
+  echo "Linting ogl library..."
+  cd libs/ogl && golangci-lint run ./...
+  cd ../..
 
-echo ""
-echo "Linting todo service..."
-cd services/todo && golangci-lint run ./...
-"""
+  echo ""
+  echo "Linting todo service..."
+  cd services/todo && golangci-lint run ./...
+  """
 
 [tasks."lint:verify-config"]
 description = "Verify golangci-lint configuration"
 run = "golangci-lint --verbose config verify"
 
-[tasks.deps]
-description = "Analyze dependencies with goda"
-run = """
-echo "Analyzing workspace dependencies..."
-goda graph "./..."
-"""
-
-[tasks."deps:tree"]
+[tasks."arch:tree"]
 description = "Show dependency tree"
 run = """
-echo "Dependency tree for workspace:"
-goda tree "./..."
-"""
+  echo "Dependency tree for workspace:"
+  goda tree "./..."
+  """
 
-[tasks."deps:list"]
+[tasks."arch:list"]
 description = "List all dependencies"
 run = """
-echo "All dependencies in workspace:"
-goda list "./..."
-"""
+  echo "All dependencies in workspace:"
+  goda list "./..."
+  """
 
-[tasks."deps:services"]
+[tasks."arch:graph"]
 description = "Show dependencies between services and libs"
 run = """
-echo "Service dependencies:"
-goda graph "./services/..."
-echo ""
-echo "Library dependencies:"
-goda graph "./libs/..."
-"""
+  echo "Service dependencies:"
+  goda graph "./services/..."
+  echo ""
+  echo "Library dependencies:"
+  goda graph "./libs/..."
+  """
 
-[tasks."deps:visualize"]
+[tasks."arch:graph:goda"]
+description = "Analyze dependencies with goda"
+run = """
+  echo "Analyzing workspace dependencies..."
+  goda graph "./..."
+  """
+
+[tasks."arch:visualize"]
 description = "Generate visual dependency tree with dep-tree"
 run = """
-echo "Generating dependency tree visualization..."
-dep-tree entrypoint ./services/todo/cmd/todo/main.go
-"""
+  echo 'TO BE FIXED, entrypoint is wrong'
+  exit 1
+  echo "Generating dependency tree visualization..."
+  dep-tree entrypoint ./services/todo/cmd/todo/main.go
+  """
 
-[tasks."deps:visualize:ogl"]
+[tasks."arch:visualize:ogl"]
 description = "Generate dependency tree for ogl library"
 run = """
-echo "Generating ogl library dependency tree..."
-dep-tree entrypoint ./libs/ogl/config/config.go
-"""
+  echo "Generating ogl library dependency tree..."
+  dep-tree entrypoint ./libs/ogl/config/config.go
+  """
 
 [tasks."deps:circular"]
 description = "Check for circular dependencies"
 run = """
-echo "Checking for circular dependencies..."
-dep-tree entrypoint ./services/todo/cmd/todo/main.go --check-cycles
-"""
+  echo 'TO BE FIXED, entrypoint is wrong'
+  exit 1
+  echo "Checking for circular dependencies..."
+  dep-tree entrypoint ./services/todo/cmd/todo/main.go --check-cycles
+  """
 
 [tasks.generate]
 description = "Generate code for all projects"
 run = """
-echo "Generating code for todo service..."
-cd services/todo && mise run generate
-"""
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.h1 "Generate code for all projects"
+
+  for dir in services/*/; do
+  st.doing "Generating code for ${dir}"
+  cd "$dir" || exit 1
+  mise run generate
+  st.done
+  done
+  """
 
 [tasks.clean]
 description = "Clean all build artifacts"
 run = """
-echo "Cleaning todo service..."
-cd services/todo && mise run clean || true
-cd ../..
+  #!/usr/bin/env bash
+  set -euo pipefail
 
-echo "Cleaning ogl library..."
-cd libs/ogl && mise run clean || true
-"""
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.h1 "Clean all build artifacts"
+
+  for dir in services/*/; do
+  st.doing "Cleaning ${dir}"
+  cd "$dir" || exit 1
+  st.do mise run clean
+  st.done
+  done
+
+  st.doing "Cleaning ogl library…"
+  cd {{config_root}}/libs/ogl || exit 1
+  st.do mise run clean
+  st.done
+  """
 
 [tasks.fmt]
 description = "Format all Go code"
 run = """
-echo "Formatting all Go code in workspace..."
-go fmt ./...
-"""
+  echo "Formatting all Go code in workspace..."
+  go fmt ./...
+  """
 
 [tasks."workspace:status"]
 description = "Show workspace module status"
 run = """
-echo "Workspace modules:"
-go work use
-echo ""
-echo "Module verification:"
-go work sync
-go mod verify
-"""
+  echo "Workspace modules:"
+  go work use
+  echo ""
+  echo "Module verification:"
+  go work sync
+  go mod verify
+  """
 
 [tasks."workspace:tidy"]
 description = "Tidy all modules in workspace"
 run = """
-echo "Tidying ogl library..."
-cd libs/ogl && go mod tidy
-cd ../..
+  echo "Tidying ogl library..."
+  cd libs/ogl && go mod tidy
+  cd ../..
 
-echo "Tidying todo service..."
-cd services/todo && go mod tidy
-cd ../..
+  echo "Tidying todo service..."
+  cd services/todo && go mod tidy
+  cd ../..
 
-echo "Syncing workspace..."
-go work sync
-"""
+  echo "Syncing workspace..."
+  go work sync
+  """
 
 [tasks."arch:check"]
 description = "Validate architectural boundaries across entire monorepo"
-run = "go run ./tools/arch-test"
+run = """
+  cd {{config_root}} || exit 1
+  go run ./tools/arch-test
+  """
 
 [tasks.help]
 description = "Display available tasks"
 run = """
-echo "Available tasks:"
-mise tasks
-"""
+  echo "Available tasks:"
+  mise tasks
+  """
+
+[tasks.doctor]
+description = "Show tool versions and key environment info"
+run = "{{config_root}}/stow/common/scripts/common/doctor.sh"
+alias = "dr"

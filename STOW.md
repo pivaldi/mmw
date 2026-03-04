@@ -93,7 +93,7 @@ poc/
 # Target directory (defaults to current directory)
 TARGET_DIR=${1:-"."}
 # The absolute path to your central stow storage
-STOW_ABS_PATH=$(readlink -f "stow-central")
+STOW_ABS_PATH=$(readlink -f "stow")
 
 echo "Materializing ONLY Stow-managed links in: $TARGET_DIR"
 

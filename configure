@@ -1,8 +1,97 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2119,SC2120
 
-set -eu
+set -o errexit
+set -o nounset
 set -o pipefail
+set -o errtrace
+(shopt -p inherit_errexit &>/dev/null) && shopt -s inherit_errexit
 
 APP_ROOT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+# readonly APP_ROOT_PATH
 
-"$APP_ROOT_PATH/services/todo/configure"
+. "$APP_ROOT_PATH/stow/common/scripts/common/init.bash"
+l.trap_error
+
+st.h1 "Configuring Root Git Sub Project"
+st.doing "Retrieving Git Submodule"
+st.do git submodule update --init --recursive
+st.done
+
+st.h1 "Installing System dependencies"
+st.doing "Installing stow http://www.gnu.org/s/stow/"
+if ! type stow &>/dev/null; then
+    if type apt &>/dev/null; then
+        sudo apt install stow
+    elif type dnf &>/dev/null; then
+        sudo install stow
+    elif type pacman &>/dev/null; then
+        sudo pacman -S stow
+    elif type zypper &>/dev/null; then
+        sudo zypper install stow
+    else
+        st.warn "Can not install stow. Install it manually."
+        st.abort
+    fi
+
+    st.done
+else
+    st.nothing "[Already Installed]"
+fi
+
+st.h1 'Configuration of APP_ENV'
+st.doing 'Configuration of APP_ENV'
+if isConfigAppEnvNeeded; then
+    cp "${APP_ROOT_PATH}/.envrc.example" "${APP_ROOT_PATH}/.envrc"
+    configAppEnv
+else
+    st.nothing
+fi
+
+. "$APP_ROOT_PATH/.envrc" || exit 1
+
+"${APP_ROOT_PATH}/stow/common/scripts/common/mise-install.sh"
+
+st.h1 'Core Installation'
+st.doing 'Core Installation'
+st.do mise install
+st.done
+
+st.doing 'Installing stream-stepper'
+if ! st.cmdExists stream-stepper; then
+    st.do go install github.com/pivaldi/stream-stepper@latest
+    st.done
+else
+    st.nothing
+fi
+
+st.doing 'Installing pre-commit hook'
+st.do mise generate git-pre-commit --task=pre-commit --write
+st.done
+
+st.doing 'Setup of the root project'
+st.do mise run setup
+st.do
+
+st.doing 'Installing/Updating tools'
+st.do mise run tools:update
+st.do
+
+st.h1 "Configuring Sub Services"
+
+HERE="${APP_ROOT_PATH}"
+readonly HERE
+
+for dir in services/*/; do
+    LC_DOING="Configuring '${dir}'"
+    st.doing "$LC_DOING"
+    cd "${HERE}/$dir" || exit 1
+    SKIP_FULL_SETUP=true APP_ROOT_PATH="${HERE}/$dir" st.do ./configure
+    # shellcheck disable=SC2034 # Used by st.done
+    DOING_MSG="LC_DOING"
+    st.done
+done
+
+cd "${APP_ROOT_PATH}" || exit 1
+
+st.success "Configuration Successfully Terminated"
