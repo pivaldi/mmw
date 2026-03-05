@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 BOLD=
 OFFBOLD=
@@ -39,12 +38,7 @@ if [ -t 1 ]; then
 fi
 
 DOING_MSG=
-# 1. Assign the default if not set
 : "${ST_QUIET:=false}"
-# 2. MANDATORY: Export it so functions can see it
-export ST_QUIET
-# 3. Your existing debug
-echo "DEBUG: ST_QUIET is: >${ST_QUIET}<"
 
 function st.quiet() {
     ST_QUIET=true
@@ -83,7 +77,6 @@ function st.h3() {
 
 function st.doing() {
     DOING_MSG=$1
-    echo "DEBUG st.doing: ST_QUIET is: >${ST_QUIET:-undefined}<"
 
     local prefix=
     [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.doing> '

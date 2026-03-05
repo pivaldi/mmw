@@ -74,9 +74,10 @@ st.do mise run setup
 st.done
 
 st.doing 'Install/Update tools'
-ST_QUIET=false st.do mise run tools:update
-st.done
+st.unquiet
+st.do mise run tools:update
 st.quiet
+st.done
 
 st.h1 "Configure Sub Services"
 
@@ -89,7 +90,7 @@ for dir in services/*/; do
     cd "${HERE}/$dir" || exit 1
     SKIP_FULL_SETUP=true APP_ROOT_PATH="${HERE}/$dir" st.do ./configure
     # shellcheck disable=SC2034 # Used by st.done
-    DOING_MSG="LC_DOING"
+    DOING_MSG="$LC_DOING"
     st.done
 done
 
