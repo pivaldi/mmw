@@ -10,7 +10,7 @@ set -o errtrace
 APP_ROOT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 # readonly APP_ROOT_PATH
 
-. "$APP_ROOT_PATH/stow/common/scripts/common/init.bash"
+ST_QUIET=true . "$APP_ROOT_PATH/stow/common/scripts/common/init.bash"
 l.trap_error
 
 st.h1 "Configuring Root Git Sub Project"
@@ -57,7 +57,7 @@ st.doing 'Core Installation'
 st.do mise install
 st.done
 
-st.doing 'Installing stream-stepper'
+st.doing 'Install stream-stepper'
 if ! st.cmdExists stream-stepper; then
     st.do go install github.com/pivaldi/stream-stepper@latest
     st.done
@@ -65,19 +65,20 @@ else
     st.nothing
 fi
 
-st.doing 'Installing pre-commit hook'
+st.doing 'Install pre-commit hook'
 st.do mise generate git-pre-commit --task=pre-commit --write
 st.done
 
-st.doing 'Setup of the root project'
+st.doing 'Setup the root project'
 st.do mise run setup
-st.do
+st.done
 
-st.doing 'Installing/Updating tools'
-st.do mise run tools:update
-st.do
+st.doing 'Install/Update tools'
+ST_QUIET=false st.do mise run tools:update
+st.done
+st.quiet
 
-st.h1 "Configuring Sub Services"
+st.h1 "Configure Sub Services"
 
 HERE="${APP_ROOT_PATH}"
 readonly HERE
@@ -92,6 +93,12 @@ for dir in services/*/; do
     st.done
 done
 
-cd "${APP_ROOT_PATH}" || exit 1
+st.h1 "Configuring Common Libraries"
+st.doing 'Configuring ogl'
+cd "${HERE}/libs/ogl/" || exit 1
+st.do ./configure
+st.done
+
+cd "${HERE}" || exit 1
 
 st.success "Configuration Successfully Terminated"

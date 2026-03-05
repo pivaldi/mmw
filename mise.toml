@@ -47,7 +47,9 @@ run = """
   set -euo pipefail
 
   cd {{config_root}} || exit 1
-  source scripts/libs/bash-stepper/st.bash
+  . scripts/libs/bash-stepper/st.bash
+
+  st.quiet
 
   st.doing 'Copying gited lib to stow common package'
   st.do command cp -f -- scripts/libs/bash-stepper/st.bash stow/common/scripts/common/libs/

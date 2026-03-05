@@ -16,7 +16,7 @@ readonly SCRIPT_DIR
 
 . "${SCRIPT_DIR}/../stow/common/scripts/common/init.bash"
 l.trap_error
-
+st.quiet
 
 # Target directory (defaults to current directory)
 APP_ROOT_PATH=${1:-"."}

@@ -13,6 +13,8 @@ source "$SCRIPT_DIR/init.bash" || exit 1
 
 l.trap_error
 
+st.quiet
+
 st.h1 "Running pre-commit checks..."
 
 [ -z "${APP_ROOT_PATH:-}" ] && st.fail 'Environment variable APP_ROOT_PATH not set'

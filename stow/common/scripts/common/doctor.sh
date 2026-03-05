@@ -4,6 +4,8 @@ set -euo pipefail
 D_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$D_SCRIPT_DIR/init.bash"
 
+st.quiet
+
 st.h1 "== mise =="
 st.do mise --version || true
 
