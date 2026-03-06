@@ -8,6 +8,7 @@ quiet = true
 [tools]
 go = "latest"
 golangci-lint = "latest"
+zellij = "latest"
 
 [env]
 # Load .envrc if present (mise will ignore if missing)

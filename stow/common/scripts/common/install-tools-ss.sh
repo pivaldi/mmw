@@ -7,4 +7,4 @@ STEPPS=$(grep -c 'st.done' "$SCRIPT")
 
 [ -z "${TOOLS_PASS:-}" ] || exit 0
 
-UPDATE=${UPDATE:-false} stream-stepper --wait=2 --processor=stbash --steps="$STEPPS" "$SCRIPT"
+UPDATE=${UPDATE:-false} stream-stepper --wait=1 --processor=stbash --steps="$STEPPS" "$SCRIPT"

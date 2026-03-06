@@ -34,6 +34,15 @@ st.done "Tools installed successfully!"
 if [ "$APP_ENV" = "development" ]; then
     st.h1 "Installing development tools..."
 
+    # Installed by go tool
+    # st.doing "Installing air (live reload)…"
+    # if $UPDATE || ! command -v air >/dev/null 2>&1; then
+    #     st.do go install github.com/air-verse/air@latest
+    #     st.done
+    # else
+    #     st.nothing
+    # fi
+
     st.doing "Installing buf..."
     if $UPDATE || ! command -v buf >/dev/null 2>&1; then
         st.do go install github.com/bufbuild/buf/cmd/buf@latest
