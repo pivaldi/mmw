@@ -7,3 +7,6 @@
 [submodule "stow/common/scripts/common/libs/bash-stepper"]
 	path = scripts/libs/bash-stepper
 	url = https://github.com/pivaldi/bash-stepper
+[submodule "services/notifications"]
+	path = services/notifications
+	url = https://github.com/pivaldi/mmw-notifications.git

@@ -1,8 +1,10 @@
-go 1.25.0
+go 1.26.1
 
 use (
+	.
 	./contracts
 	./libs/ogl
+	./services/notifications
 	./services/todo
 	./tools/arch-test
 )
