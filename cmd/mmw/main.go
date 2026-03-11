@@ -10,23 +10,44 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
-	"github.com/ovya/ogl/core"
-	oglos "github.com/ovya/ogl/os"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ovya/ogl/oglcore"
+	"github.com/ovya/ogl/oglevents"
+	oglos "github.com/ovya/ogl/oglos"
+	"github.com/ovya/ogl/oglslog"
+	"github.com/ovya/ogl/platform"
+	"github.com/ovya/ogl/platform/middleware"
 	"github.com/ovya/ogl/platform/runner"
-	"github.com/pivaldi/mmw/internal/adapters/eventbus"
 	"github.com/pivaldi/mmw/notifications"
 	"github.com/pivaldi/mmw/todo"
+	"github.com/rotisserie/eris"
 )
 
 const (
 	outputChannelBufferSize = 1024
+	minDatabaseURLLength    = 20
 )
+
+var errFormater = eris.ToJSON
+
+var logger *slog.Logger
+var exit = 0
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	defer func() {
+		cancel()
+		os.Exit(exit)
+	}()
 
-	logger := setupLogger()
+	logger, err := setupLogger()
+	if err != nil {
+		exit = 1
+		logError("boostraping logge", err)
+
+		return
+	}
+
 	watermillLogger := watermill.NewSlogLogger(logger)
 	rawBus := gochannel.NewGoChannel(
 		gochannel.Config{
@@ -40,57 +61,116 @@ func main() {
 
 	defer rawBus.Close()
 	// Wrap the raw infrastructure in the Adapter.
-	systemBus := eventbus.NewWatermillBus(rawBus)
+	systemBus := oglevents.NewWatermillBus(rawBus)
 
-	app := todo.New()
-	if err := app.Bootstrap(ctx, oglos.EnvMap()); err != nil {
-		panic(err)
-	}
-
-	defer app.Close()
-
-	dbPool, err := app.GetBdPool()
+	conf, err := todo.GetConfig(ctx, oglos.EnvMap())
 	if err != nil {
-		panic(err)
+		exit = 1
+		logError("todo app error", eris.Wrap(err, "app failed to load configuration"))
+
+		return
 	}
 
-	modules := []core.Module{
-		todo.Build(dbPool, systemBus, logger),
-		notifications.Build(rawBus, logger),
-	}
+	logger.Info("todo config loaded", "conf", conf)
 
-	// if err := app.SetModules(modules); err != nil {
-	// 	panic(err)
-	// }
-
-	config, err := app.GetConfig(ctx, nil)
+	dbPool, err := getDatabasePoolConnexion(ctx, conf)
 	if err != nil {
-		panic(err)
+		exit = 1
+		logError("creating todo database pool", err)
+
+		return
+	}
+	defer dbPool.Close()
+
+	todoLogger := logger.With("module", "todo")
+	notifLogger := logger.With("module", "notifications")
+	modules := []oglcore.Module{
+		todo.Build(dbPool, systemBus, todoLogger),
+		notifications.Build(rawBus, notifLogger),
 	}
 
-	platform := runner.New(config, logger, dbPool, modules)
+	platformRuner := runner.New(
+		conf, logger, dbPool, modules,
+		middleware.LoggingMiddleware(logger, conf.Environment.IsDev()),
+		middleware.CORSMiddleware(conf),
+	)
 
-	err = platform.Run(ctx)
+	logger.Info("Starting the platform...")
+	err = platformRuner.Run(ctx)
 	if err != nil {
-		panic(err)
+		logError("platform error", err)
+		exit = 1
+
+		return
 	}
-
-	// modules := []core.Module{
-	// 	todo.Build(dbPool, systemBus, logger),
-	// 	notifications.Build(rawBus, logger),
-	// }
-
-	// if err := app.SetModules(modules); err != nil {
-	// 	panic(err)
-	// }
-	// app.Run(ctx)
 }
 
-// setupLogger creates a structured logger based on environment
-func setupLogger() *slog.Logger {
-	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	})
+func logError(msg string, err error) {
+	logger.Error(msg, "details", errFormater(err, true))
+}
 
-	return slog.New(handler)
+// setupLogger automatically configures the logger based on the environment
+func setupLogger() (*slog.Logger, error) {
+	appEnv := os.Getenv("APP_ENV")
+	if appEnv == "" {
+		return nil, eris.New("Environment variable APP_ENV not set.")
+	}
+
+	isProd := appEnv == "production"
+	replaceErr := func(_ []string, a slog.Attr) slog.Attr {
+		// Detect if the attribute value is an `error` type
+		if err, isError := a.Value.Any().(error); isError {
+			if isProd {
+				return slog.Any(a.Key, eris.ToJSON(err, true))
+			}
+
+			return slog.String(a.Key, "\n"+eris.ToString(err, true))
+		}
+
+		return a
+	}
+
+	var logger *slog.Logger
+	if isProd {
+		handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level:       slog.LevelWarn, // TODO: from plateform config
+			ReplaceAttr: replaceErr,
+		})
+		logger = slog.New(handler)
+	} else {
+		logger = slog.New(oglslog.StdoutTxtHandler(slog.LevelDebug, replaceErr))
+	}
+
+	logger.Info("logger setup ok")
+
+	return logger, nil
+}
+
+func getDatabasePoolConnexion(ctx context.Context, conf platform.Config) (*pgxpool.Pool, error) {
+	dbUrl := conf.GetDatabaseURL()
+	logger.Info("connecting to todo database", "url", maskDatabaseURL(dbUrl))
+
+	dbPool, err := pgxpool.New(ctx, dbUrl)
+	if err != nil {
+		return nil, eris.Wrap(err, "connecting to database")
+	}
+
+	if err := dbPool.Ping(ctx); err != nil {
+		dbPool.Close()
+		return nil, eris.Wrap(err, "pinging database")
+	}
+
+	logger.Info("database connection established")
+
+	return dbPool, nil
+}
+
+// maskDatabaseURL masks sensitive parts of database URL for logging
+func maskDatabaseURL(url string) string {
+	// Simple masking - in production use more robust URL parsing
+	if len(url) < minDatabaseURLLength {
+		return "***"
+	}
+
+	return url[:10] + "***" + url[len(url)-10:]
 }

@@ -190,36 +190,23 @@ run = """
   """
 
 [tasks."arch:graph"]
-description = "Show dependencies between services and libs"
-run = """
-  echo "Service dependencies:"
-  goda graph "./services/..."
-  echo ""
-  echo "Library dependencies:"
-  goda graph "./libs/..."
-  """
-
-[tasks."arch:graph:goda"]
-description = "Analyze dependencies with goda"
-run = """
-  echo "Analyzing workspace dependencies..."
-  goda graph "./..."
-  """
+description = "Show graph architectural dependcies for this service"
+run = """goda graph github.com/pivaldi/mmw/... | dot -Tsvg -o graph.svg &&
+  xdg-open graph.svg
+ """
 
 [tasks."arch:visualize"]
 description = "Generate visual dependency tree with dep-tree"
 run = """
-  echo 'TO BE FIXED, entrypoint is wrong'
-  exit 1
   echo "Generating dependency tree visualization..."
-  dep-tree entrypoint ./services/todo/cmd/todo/main.go
+  dep-tree entrypoint ./**/*.go
   """
 
 [tasks."arch:visualize:ogl"]
 description = "Generate dependency tree for ogl library"
 run = """
   echo "Generating ogl library dependency tree..."
-  dep-tree entrypoint ./libs/ogl/config/config.go
+  dep-tree entrypoint ./libs/ogl
   """
 
 [tasks."arch:check"]
