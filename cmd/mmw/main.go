@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -30,12 +31,16 @@ const (
 
 var errFormater = eris.ToJSON
 
-var logger *slog.Logger
 var exit = 0
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	var dbPool *pgxpool.Pool
+
 	defer func() {
+		if dbPool != nil {
+			dbPool.Close()
+		}
 		cancel()
 		os.Exit(exit)
 	}()
@@ -43,7 +48,7 @@ func main() {
 	logger, err := setupLogger()
 	if err != nil {
 		exit = 1
-		logError("boostraping logge", err)
+		log.Default().Printf("boostraping logger failed: %s", err)
 
 		return
 	}
@@ -62,25 +67,21 @@ func main() {
 	defer rawBus.Close()
 	// Wrap the raw infrastructure in the Adapter.
 	systemBus := oglevents.NewWatermillBus(rawBus)
-
 	conf, err := todo.GetConfig(ctx, oglos.EnvMap())
 	if err != nil {
-		exit = 1
-		logError("todo app error", eris.Wrap(err, "app failed to load configuration"))
+		logError(logger, "todo app error", eris.Wrap(err, "app failed to load configuration"))
 
 		return
 	}
 
 	logger.Info("todo config loaded", "conf", conf)
 
-	dbPool, err := getDatabasePoolConnexion(ctx, conf)
+	dbPool, err = getDatabasePoolConnexion(ctx, logger, conf)
 	if err != nil {
-		exit = 1
-		logError("creating todo database pool", err)
+		logError(logger, "creating todo database pool", err)
 
 		return
 	}
-	defer dbPool.Close()
 
 	todoLogger := logger.With("module", "todo")
 	notifLogger := logger.With("module", "notifications")
@@ -98,14 +99,14 @@ func main() {
 	logger.Info("Starting the platform...")
 	err = platformRuner.Run(ctx)
 	if err != nil {
-		logError("platform error", err)
-		exit = 1
+		logError(logger, "platform error", err)
 
 		return
 	}
 }
 
-func logError(msg string, err error) {
+func logError(logger *slog.Logger, msg string, err error) {
+	exit = 1
 	logger.Error(msg, "details", errFormater(err, true))
 }
 
@@ -113,7 +114,7 @@ func logError(msg string, err error) {
 func setupLogger() (*slog.Logger, error) {
 	appEnv := os.Getenv("APP_ENV")
 	if appEnv == "" {
-		return nil, eris.New("Environment variable APP_ENV not set.")
+		return nil, eris.New("environment variable APP_ENV not set.")
 	}
 
 	isProd := appEnv == "production"
@@ -130,23 +131,21 @@ func setupLogger() (*slog.Logger, error) {
 		return a
 	}
 
-	var logger *slog.Logger
+	var llogger *slog.Logger
 	if isProd {
 		handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 			Level:       slog.LevelWarn, // TODO: from plateform config
 			ReplaceAttr: replaceErr,
 		})
-		logger = slog.New(handler)
+		llogger = slog.New(handler)
 	} else {
-		logger = slog.New(oglslog.StdoutTxtHandler(slog.LevelDebug, replaceErr))
+		llogger = slog.New(oglslog.StdoutTxtHandler(slog.LevelDebug, replaceErr))
 	}
 
-	logger.Info("logger setup ok")
-
-	return logger, nil
+	return llogger, nil
 }
 
-func getDatabasePoolConnexion(ctx context.Context, conf platform.Config) (*pgxpool.Pool, error) {
+func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, conf platform.Config) (*pgxpool.Pool, error) {
 	dbUrl := conf.GetDatabaseURL()
 	logger.Info("connecting to todo database", "url", maskDatabaseURL(dbUrl))
 
