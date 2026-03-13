@@ -16,8 +16,7 @@ import (
 	"github.com/ovya/ogl/oglevents"
 	oglos "github.com/ovya/ogl/oglos"
 	"github.com/ovya/ogl/oglslog"
-	"github.com/ovya/ogl/platform"
-	"github.com/ovya/ogl/platform/middleware"
+	"github.com/ovya/ogl/platform/config"
 	"github.com/ovya/ogl/platform/runner"
 	"github.com/pivaldi/mmw/notifications"
 	"github.com/pivaldi/mmw/todo"
@@ -53,7 +52,10 @@ func main() {
 		return
 	}
 
-	watermillLogger := watermill.NewSlogLogger(logger)
+	todoLogger := logger.With("app", "todo")
+	notifLogger := logger.With("app", "notifications")
+
+	watermillLogger := watermill.NewSlogLogger(todoLogger)
 	rawBus := gochannel.NewGoChannel(
 		gochannel.Config{
 			// Output channel buffer size
@@ -69,32 +71,39 @@ func main() {
 	systemBus := oglevents.NewWatermillBus(rawBus)
 	conf, err := todo.GetConfig(ctx, oglos.EnvMap())
 	if err != nil {
-		logError(logger, "todo app error", eris.Wrap(err, "app failed to load configuration"))
+		logError(logger, "app error", eris.Wrap(err, "app failed to load configuration"))
 
 		return
 	}
 
-	logger.Info("todo config loaded", "conf", conf)
+	todoLogger.Info("todo config loaded")
 
-	dbPool, err = getDatabasePoolConnexion(ctx, logger, conf)
+	dbPool, err = getDatabasePoolConnexion(ctx, todoLogger, conf)
 	if err != nil {
-		logError(logger, "creating todo database pool", err)
+		logError(todoLogger, "creating database pool", err)
 
 		return
 	}
 
-	todoLogger := logger.With("module", "todo")
-	notifLogger := logger.With("module", "notifications")
-	modules := []oglcore.Module{
-		todo.Build(dbPool, systemBus, todoLogger),
-		notifications.Build(rawBus, notifLogger),
+	todoApp, err := todo.New(dbPool, systemBus, todoLogger)
+	if err != nil {
+		logError(todoLogger, "creating app failed", err)
+		return
 	}
 
-	platformRuner := runner.New(
-		conf, logger, dbPool, modules,
-		middleware.LoggingMiddleware(logger, conf.Environment.IsDev()),
-		middleware.CORSMiddleware(conf),
-	)
+	modules := []oglcore.Module{
+		todoApp,
+		notifications.New(rawBus, notifLogger),
+	}
+
+	// platformRuner := runner.New(
+	// 	conf, logger, dbPool, modules,
+	// 	middleware.RecoveryMiddleware(logger),
+	// 	middleware.LoggingMiddleware(logger, conf.Environment.IsDev()),
+	// 	middleware.CORSMiddleware(conf),
+	// )
+
+	platformRuner := runner.New(logger, modules)
 
 	logger.Info("Starting the platform...")
 	err = platformRuner.Run(ctx)
@@ -134,7 +143,7 @@ func setupLogger() (*slog.Logger, error) {
 	var llogger *slog.Logger
 	if isProd {
 		handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level:       slog.LevelWarn, // TODO: from plateform config
+			Level:       slog.LevelDebug, // TODO: from plateform config
 			ReplaceAttr: replaceErr,
 		})
 		llogger = slog.New(handler)
@@ -145,9 +154,9 @@ func setupLogger() (*slog.Logger, error) {
 	return llogger, nil
 }
 
-func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, conf platform.Config) (*pgxpool.Pool, error) {
+func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, conf config.Config) (*pgxpool.Pool, error) {
 	dbUrl := conf.GetDatabaseURL()
-	logger.Info("connecting to todo database", "url", maskDatabaseURL(dbUrl))
+	logger.Info("connecting to database", "url", maskDatabaseURL(dbUrl))
 
 	dbPool, err := pgxpool.New(ctx, dbUrl)
 	if err != nil {
@@ -155,8 +164,7 @@ func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, conf pla
 	}
 
 	if err := dbPool.Ping(ctx); err != nil {
-		dbPool.Close()
-		return nil, eris.Wrap(err, "pinging database")
+		return dbPool, eris.Wrap(err, "pinging database")
 	}
 
 	logger.Info("database connection established")

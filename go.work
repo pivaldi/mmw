@@ -4,6 +4,7 @@ use (
 	.
 	./contracts
 	./libs/ogl
+	./services/auth
 	./services/notifications
 	./services/todo
 	./tools/arch-test
