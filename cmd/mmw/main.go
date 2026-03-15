@@ -12,12 +12,12 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/ovya/ogl/oglcore"
-	"github.com/ovya/ogl/oglevents"
-	oglos "github.com/ovya/ogl/oglos"
-	"github.com/ovya/ogl/oglslog"
-	"github.com/ovya/ogl/platform/config"
-	"github.com/ovya/ogl/platform/runner"
+	oglos "github.com/ovya/ogl/os"
+	oglpfConfig "github.com/ovya/ogl/platform/config"
+	oglcore "github.com/ovya/ogl/platform/core"
+	oglevents "github.com/ovya/ogl/platform/events"
+	oglrunner "github.com/ovya/ogl/platform/runner"
+	oglslog "github.com/ovya/ogl/slog"
 	"github.com/pivaldi/mmw/notifications"
 	"github.com/pivaldi/mmw/todo"
 	"github.com/rotisserie/eris"
@@ -96,14 +96,14 @@ func main() {
 		notifications.New(rawBus, notifLogger),
 	}
 
-	// platformRuner := runner.New(
+	// platformRuner := oglrunner.New(
 	// 	conf, logger, dbPool, modules,
 	// 	middleware.RecoveryMiddleware(logger),
 	// 	middleware.LoggingMiddleware(logger, conf.Environment.IsDev()),
 	// 	middleware.CORSMiddleware(conf),
 	// )
 
-	platformRuner := runner.New(logger, modules)
+	platformRuner := oglrunner.New(logger, modules)
 
 	logger.Info("Starting the platform...")
 	err = platformRuner.Run(ctx)
@@ -154,7 +154,7 @@ func setupLogger() (*slog.Logger, error) {
 	return llogger, nil
 }
 
-func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, conf config.Config) (*pgxpool.Pool, error) {
+func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, conf oglpfConfig.Config) (*pgxpool.Pool, error) {
 	dbUrl := conf.GetDatabaseURL()
 	logger.Info("connecting to database", "url", maskDatabaseURL(dbUrl))
 

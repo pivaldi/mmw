@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ovya/ogl/platform/oglserver"
+	oglserver "github.com/ovya/ogl/platform/server"
 	"github.com/rotisserie/eris"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -19,7 +19,7 @@ type Module struct {
 func NewModule(logger *slog.Logger, port string) *Module {
 	mux := http.NewServeMux()
 
-	// Register Connect Handlers
+	// TODO: Register Connect Handlers
 	// path, handler := authv1connect.NewAuthServiceHandler(...)
 	// mux.Handle(path, handler)
 
