@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/rotisserie/eris"
 )
 
 type User struct {
@@ -19,12 +18,11 @@ type Service struct {
 }
 
 // GetUserByID is Auth's standard internal method
-func (s *Service) GetUserByID(_ context.Context, id string) (*User, error) {
+func (s *Service) GetUserByID(_ context.Context, id uuid.UUID) (*User, error) {
 	// SELECT id, email, password_hash FROM auth.users WHERE id = $1
-	uid, err := uuid.Parse("4d698c6b-5532-4598-a7d7-db5e0c768ce6")
-	if err != nil {
-		return nil, eris.Wrap(err, "parsing uuid failed")
-	}
+	// if err != nil {
+	// 	return nil, eris.Wrap(err, "parsing uuid failed")
+	// }
 
-	return &User{UUID: uid, Login: "admin"}, nil
+	return &User{UUID: id, Login: "admin"}, nil
 }

@@ -3,12 +3,14 @@ package defauth
 import (
 	"context"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
-// DTOs (Can be Go structs now, Protobuf generated types later)
+// DTOs. TODO; should be protobuf generated types
 type UserDTO struct {
-	ID    string
-	Email string
+	UUID  uuid.UUID
+	Login string
 }
 
 // The Public Interface of the AuthService
