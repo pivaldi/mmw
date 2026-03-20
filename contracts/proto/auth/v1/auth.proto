@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/pivaldi/mmw/contracts/gen/go/auth/v1;authv1";
+
+// AuthService provides functionalities for user authentication.
+service AuthService {
+  // Register creates a new user account.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Login authenticates a user and returns a session token.
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // ValidateToken checks if a token is valid and returns the user's identity.
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+
+  // ChangePassword updates a user's password after verifying the old one.
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+
+  // DeleteUser removes a user from the system.
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+// --- Register ---
+
+message RegisterRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+}
+
+// --- Login ---
+
+message LoginRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string token = 1;
+  string user_id = 2;
+}
+
+// --- ValidateToken ---
+
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateTokenResponse {
+  string user_id = 1;
+  bool is_valid = 2;
+}
+
+// --- ChangePassword ---
+
+message ChangePasswordRequest {
+  string user_id      = 1;
+  string old_password = 2;
+  string new_password = 3;
+}
+
+message ChangePasswordResponse {}
+
+// --- DeleteUser ---
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message DeleteUserResponse {}

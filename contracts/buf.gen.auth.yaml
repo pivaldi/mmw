@@ -1,0 +1,17 @@
+# contracts/buf.gen.auth.yaml - Generate only Auth API
+version: v2
+managed:
+  enabled: false
+inputs:
+  - directory: .
+    paths:
+      - proto/auth
+plugins:
+  # Go: protobuf types
+  - remote: buf.build/protocolbuffers/go
+    out: gen/go # → contracts/gen/go/
+    opt: paths=source_relative
+  # Go: Connect RPC stubs
+  - remote: buf.build/connectrpc/go
+    out: gen/go # → contracts/gen/go/
+    opt: paths=source_relative

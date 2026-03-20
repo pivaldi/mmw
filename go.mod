@@ -9,7 +9,7 @@ tool (
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.1
-	github.com/ovya/ogl v0.0.0-20260226042109-88b837584e70
+	github.com/ovya/ogl v0.0.0-20260319180015-237c847c1f31
 	github.com/pivaldi/mmw/notifications v0.0.0-00010101000000-000000000000
 	github.com/pivaldi/mmw/todo v0.0.0-00010101000000-000000000000
 )
@@ -58,7 +58,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/term v0.40.0 // indirect
 	golang.org/x/text v0.34.0 // indirect

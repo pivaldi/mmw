@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o errtrace
+(shopt -p inherit_errexit &>/dev/null) && shopt -s inherit_errexit
+
+APP_ROOT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+
+. "$APP_ROOT_PATH/scripts/common/init.bash"
+
+l.trap_error
+
+# $IN_DOCKER && exit 0
+
+st.h1 "Configuring Git Sub Project"
+st.doing "Retrieving Git Submodule"
+st.do git submodule update --init --recursive
+st.done
+
+st.h1 "Configuring the project"
+
+st.doing 'Configuration of APP_ENV'
+# shellcheck disable=SC2015
+if isConfigAppEnvNeeded; then
+    cp "${APP_ROOT_PATH}/.envrc.example" "${APP_ROOT_PATH}/.envrc"
+    configAppEnv
+else
+    st.nothing
+fi
+
+. "$APP_ROOT_PATH/.envrc" || exit 1
+
+"$APP_ROOT_PATH/scripts/common/mise-install.sh"
+
+st.h1 'Core installation service todo service'
+st.doing "Environnement installation"
+st.do mise install
+st.done
+
+st.doing 'Installing pre-commit hook'
+## DO NOT USE st.do HERE !!
+mise generate git-pre-commit --task=pre-commit >"$(git rev-parse --git-path hooks)/pre-commit"
+st.do chmod +x "$(git rev-parse --git-path hooks)/pre-commit"
+st.done
+
+st.doing 'Setup the service'
+st.do mise run setup
+st.done
+
+st.doing 'Install Tools'
+if st.var.exits SKIP_FULL_SETUP; then
+    st.do mise run tools:update
+else
+    st.do mise run tools
+fi
+st.done

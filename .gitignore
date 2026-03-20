@@ -6,3 +6,6 @@ tmp/
 
 .envrc
 un-stow.log
+
+graph.svg
+docs/**

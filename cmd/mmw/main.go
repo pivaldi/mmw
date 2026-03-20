@@ -17,6 +17,8 @@ import (
 	oglevents "github.com/ovya/ogl/platform/events"
 	oglrunner "github.com/ovya/ogl/platform/runner"
 	oglslog "github.com/ovya/ogl/slog"
+	"github.com/pivaldi/mmw/auth"
+	defauth "github.com/pivaldi/mmw/contracts/definitions/auth"
 	"github.com/pivaldi/mmw/notifications"
 	"github.com/pivaldi/mmw/todo"
 	"github.com/rotisserie/eris"
@@ -43,7 +45,9 @@ func main() {
 		os.Exit(exit)
 	}()
 
-	conf, err := todo.GetConfig(ctx, "TODO_", oglos.EnvMap())
+	envMap := oglos.EnvMap()
+
+	todoConf, err := todo.GetConfig(ctx, "TODO_", envMap)
 	if err != nil {
 		exit = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
@@ -51,7 +55,16 @@ func main() {
 		return
 	}
 
-	logger, err := oglslog.New(conf.Environment.String(), conf.LogLevel.SlogLevel())
+	authConf, err := auth.GetConfig(ctx, "AUTH_", envMap)
+	if err != nil {
+		exit = 1
+		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+
+		return
+	}
+
+	// TODO: Add logLevel in the mmw config
+	logger, err := oglslog.New(todoConf.Environment.String(), todoConf.LogLevel.SlogLevel())
 	if err != nil {
 		exit = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
@@ -60,39 +73,44 @@ func main() {
 	}
 
 	todoLogger := logger.With("app", "todo")
+	authLogger := logger.With("app", "auth")
 	notifLogger := logger.With("app", "notifications")
 
 	watermillLogger := watermill.NewSlogLogger(todoLogger)
 	rawBus := gochannel.NewGoChannel(
 		gochannel.Config{
-			// Output channel buffer size
 			OutputChannelBuffer: outputChannelBufferSize,
-			// Persistent guarantees the channel won't drop messages if no subscriber is attached yet
-			Persistent: true,
+			Persistent:          true,
 		},
 		watermillLogger,
 	)
-
 	defer rawBus.Close()
-	// Wrap the raw infrastructure in the Adapter.
 	systemBus := oglevents.NewWatermillBus(rawBus)
-	todoLogger.Info("todo config loaded")
 
-	dbPool, err = getDatabasePoolConnexion(ctx, todoLogger, conf.Database.URL())
+	dbPool, err = getDatabasePoolConnexion(ctx, logger, todoConf.Database.URL())
 	if err != nil {
-		logError(todoLogger, "creating database pool", err)
-
+		logError(logger, "creating database pool", err)
 		return
 	}
 
-	todoApp, err := todo.New(conf, dbPool, systemBus, todoLogger)
+	// Create authApp first, todo depends on it.
+	authApp := auth.New(authConf, dbPool, systemBus, authLogger)
+	authSvc := defauth.NewInprocClient(authApp)
+
+	todoApp, err := todo.New(todoConf, todo.Infrastructure{
+		DBPool:   dbPool,
+		EventBus: systemBus,
+		Logger:   todoLogger,
+		AuthSvc:  authSvc,
+	})
 	if err != nil {
-		logError(todoLogger, "creating app failed", err)
+		logError(todoLogger, "creating todo app failed", err)
 		return
 	}
 
 	modules := []oglcore.Module{
 		todoApp,
+		authApp,
 		notifications.New(rawBus, notifLogger),
 	}
 
@@ -102,7 +120,6 @@ func main() {
 	err = platformRuner.Run(ctx)
 	if err != nil {
 		logError(logger, "platform error", err)
-
 		return
 	}
 }

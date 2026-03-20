@@ -9,14 +9,21 @@ quiet = true
 go = "latest"
 golangci-lint = "latest"
 zellij = "latest"
+buf = "latest"
 
 [env]
-# Load .envrc if present (mise will ignore if missing)
-_.file = '.envrc'
+BINARY_NAME = "mmw"
+BINARY_PATH = "./cmd/mmw"
+BUILD_DIR = "bin"
+_.file = ".envrc"  # Load .envrc file if it exists
 APP_ENV = { required = true }
+APP_NAME = { required = true }
+DB_PASSWORD="postgres" # TODO: make it secret
+JWT_SECRET="fake-secret" # TODO: make it secret
 
 [shell_alias]
-mr = "mise run"
+r = "mise run"
+dev = "mise run run:dev"
 
 # Global tasks
 
@@ -64,11 +71,8 @@ run = """
   st.done
   }
 
-  st.doing "stow unlinks to prevent conflicts: $dir"
-  st.do stow --dir=stow --target="$dir" -D common
-  st.done
-  st.doing "stow relinks: $dir"
-  st.do stow --dir=stow --target="$dir" common
+  st.doing "stowing: $dir"
+  st.do stow -v --restow --dir=stow --target="$dir" common
   st.done
   done
   """
@@ -91,12 +95,62 @@ description = "Pre-commit checks (can be run manually or as git hook)"
 run = "APP_ROOT_PATH={{config_root}} {{config_root}}/stow/common/scripts/common/pre-commit.sh"
 alias = "pc"
 
+[tasks."db:reset"]
+description = "Drop the database (nuclear option)"
+run = """
+docker-compose -f deployments/docker-compose.yml down -v
+docker-compose -f deployments/docker-compose.yml up -d postgres
+"""
+
+[tasks."db:setup"]
+description = "Complete database setup (clean + migrate)"
+depends = ["db:clean", "db:migrate:up"]
+
+[tasks."db:up"]
+description = "Start Docker Database"
+run = "docker-compose -f deployments/docker-compose.yml up postgres -d"
+
+[tasks."db:down"]
+description = "Stop Docker Database"
+run = "docker-compose -f deployments/docker-compose.yml down postgres"
+
+[tasks."db:migrate"]
+description = "Migrate Up All Services"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+  cd {{config_root}}/services/todo/ && mise run db:migrate:up
+  cd {{config_root}}/services/auth/ && mise run db:migrate:up
+"""
+
+[tasks."db:connect"]
+description = "Connect to the database"
+run = "docker exec -it todoapp-postgres psql -U postgres -d mmw"
+
+[tasks.run]
+description = "Run the application"
+# depends = ["generate"] # See https://buf.build/docs/bsr/rate-limits/ for details about BSR rate limiting.
+run = "go run ${BINARY_PATH}/main.go"
+
+[tasks."run:dev"]
+description = "Run with hot reload (requires air)"
+run = "go tool air"
+
+[tasks.build]
+description = "Build the application binary"
+depends = ["generate"]
+run = """
+[ -e ${BUILD_DIR} ] || mkdir -p ${BUILD_DIR}
+go build -o ${BUILD_DIR}/${BINARY_NAME} -v ${BINARY_PATH}
+"""
+
 [tasks."todo:test"]
 description = "Run all tests in todo service"
 run = """
   cd services/todo
   mise run test
-  """
+"""
 
 [tasks."todo:test:coverage"]
 description = "Run tests with coverage in todo service"
@@ -238,7 +292,7 @@ run = """
 
   for dir in services/*/; do
   st.doing "Generating code for ${dir}"
-  cd "$dir" || exit 1
+  cd "{{config_root}}/$dir" || exit 1
   mise run generate
   st.done
   done

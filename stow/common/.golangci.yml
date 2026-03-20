@@ -8,7 +8,9 @@ run:
 linters:
   default: none
   enable:
+    - prealloc
     - copyloopvar
+    - gocognit
     - depguard
     - dogsled
     - dupl
@@ -18,6 +20,7 @@ linters:
     - goconst
     - gocritic
     - gocyclo
+    - nestif
     - goprintffuncname
     - gosec
     - govet
@@ -37,7 +40,25 @@ linters:
     - unused
     - whitespace
     - wrapcheck
+    - protogetter
   settings:
+    prealloc:
+      # IMPORTANT: we don't recommend using this linter before doing performance profiling.
+      # For most programs usage of prealloc will be a premature optimization.
+
+      # Report pre-allocation suggestions only on simple loops that have no returns/breaks/continues/gotos in them.
+      # Default: true
+      simple: false
+      # Report pre-allocation suggestions on range loops.
+      # Default: true
+      range-loops: false
+      # Report pre-allocation suggestions on for loops.
+      # Default: false
+      for-loops: true
+    nestif:
+      # Minimal complexity of if statements to report.
+      # Default: 5
+      min-complexity: 5
     sloglint:
       # Enforce not mixing key-value pairs and attributes.
       # Default: true

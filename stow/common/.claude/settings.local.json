@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(~/.codex/superpowers/.codex/superpowers-codex bootstrap)",
+      "Skill(superpowers:brainstorming)",
+      "Bash(tree:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(/usr/local/bin/go mod tidy:*)",
+      "Bash(/usr/local/go/bin/go mod:*)",
+      "Bash(grep:*)",
+      "Bash(/usr/local/go/bin/go test:*)",
+      "Bash(/usr/local/go/bin/go get:*)",
+      "Bash(/usr/local/go/bin/go tool cover:*)",
+      "Bash(go get:*)",
+      "Bash(docker --version:*)",
+      "Bash(buf generate:*)",
+      "Bash(/usr/local/go/bin/go install:*)",
+      "Bash(~/go/bin/buf generate:*)",
+      "Bash(PATH=\"$HOME/go/bin:$PATH\" buf generate:*)",
+      "Bash(find:*)",
+      "Bash(/usr/local/go/bin/go build:*)"
+    ]
+  }
+}

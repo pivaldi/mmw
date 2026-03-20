@@ -1,0 +1,15 @@
+log-level="debug"
+
+[database]
+scheme = "postgres"
+user = "postgres"
+host = "localhost"
+port = 5435
+name = "mmw"
+sslmode = "disable"
+
+[server]
+port = 8091
+scheme = "https"
+host = "localhost"
+allowed-origins = ["*"] # IMPORTANT; Change this in production !

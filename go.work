@@ -3,6 +3,8 @@ go 1.26.1
 use (
 	.
 	./contracts
+	./contracts/definitions/auth
+	./contracts/definitions/todo
 	./libs/ogl
 	./services/auth
 	./services/notifications

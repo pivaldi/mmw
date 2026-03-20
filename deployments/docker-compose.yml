@@ -1,0 +1,28 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:18-alpine
+    container_name: todoapp-postgres
+    environment:
+      POSTGRES_DB: mmw
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5435:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - todoapp-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  todoapp-network:
+    driver: bridge
