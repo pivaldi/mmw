@@ -265,11 +265,13 @@ run = """
 
 [tasks."arch:graph"]
 description = "Show graph architectural dependcies for this service"
-run = """goda graph github.com/pivaldi/mmw/... | dot -Tsvg -o graph.svg &&
-  xdg-open graph.svg
- """
+run = """
+goda graph \
+  "shared(github.com/pivaldi/mmw/cmd/mmw:all, github.com/pivaldi/mmw/... + github.com/pivaldi/mmw-auth/... + github.com/pivaldi/mmw-todo/... + github.com/pivaldi/mmw-notifications/... + github.com/pivaldi/mmw-contracts/...) - github.com/pivaldi/mmw-auth/cmd/migration  - github.com/pivaldi/mmw-todo/cmd/migration  - github.com/pivaldi/mmw-auth/internal/infra/persistence/migrations/... - github.com/pivaldi/mmw-todo/internal/infra/persistence/migrations/...  - github.com/pivaldi/mmw-notifications/internal/infra/persistence/migrations/... - github.com/pivaldi/mmw-arch-test/..." \
+  | dot -Tsvg -o graph.svg  &&  echo 'Generated graph: {{config_root}}/graph.svg'
+"""
 
-[tasks."arch:visualize"]
+[tasks."arch:dep-tree"]
 description = "Generate visual dependency tree with dep-tree"
 run = """
   echo "Generating dependency tree visualization..."
