@@ -72,27 +72,33 @@ func (c *Config) GetAppEnv() fmt.Stringer {
 	return c.Environment
 }
 
+var conf *Config
+
 // Load reads the TOML files and automatically overrides them with Env Vars
 // Load loads the configurations from embedded files:
 // - configs/default.toml
 // - configs/<APP_ENV>.toml if exist
 // If envs is not nil, automatically overrides them with Env Vars.
-func Load(ctx context.Context, envprefix string, envs map[string]string) (*Config, error) {
-	config := new(Config)
+func Load(ctx context.Context, envprefix string) (*Config, error) {
+	if conf != nil {
+		return conf, nil
+	}
+
+	conf := new(Config)
 
 	configFS := getConfigFS()
-	err := oglconfig.NewContext(ctx, envprefix, configFS, envs).Fill(config)
+	err := oglconfig.NewContext(ctx, configFS, envprefix).Fill(conf)
 	if err != nil {
 		return nil, eris.Wrap(err, "error filling config")
 	}
 
-	if config.Database.Password == "" {
+	if conf.Database.Password == "" {
 		return nil, eris.New("database password is empty")
 	}
 
-	if config.JWT.Secret == "" {
+	if conf.JWT.Secret == "" {
 		return nil, eris.New("jwt secret is empty")
 	}
 
-	return config, nil
+	return conf, nil
 }

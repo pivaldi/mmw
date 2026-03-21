@@ -11,13 +11,12 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/jackc/pgx/v5/pgxpool"
-	oglos "github.com/ovya/ogl/os"
 	oglcore "github.com/ovya/ogl/platform/core"
 	oglevents "github.com/ovya/ogl/platform/events"
 	oglrunner "github.com/ovya/ogl/platform/runner"
 	oglslog "github.com/ovya/ogl/slog"
 	"github.com/pivaldi/mmw/auth"
-	"github.com/pivaldi/mmw/todo"
+	authConfig "github.com/pivaldi/mmw/auth/config"
 	"github.com/rotisserie/eris"
 )
 
@@ -42,9 +41,7 @@ func main() {
 
 	var err error
 
-	envMap := oglos.EnvMap()
-
-	todoConf, err := todo.GetConfig(ctx, "", envMap)
+	authConf, err := authConfig.Load(ctx, "AUTH_")
 	if err != nil {
 		exitCode = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
@@ -52,7 +49,7 @@ func main() {
 		return
 	}
 
-	authConf, err := auth.GetConfig(ctx, "AUTH_", envMap)
+	logger, err = oglslog.New(authConf.Environment.String(), authConf.LogLevel.SlogLevel())
 	if err != nil {
 		exitCode = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
@@ -60,18 +57,9 @@ func main() {
 		return
 	}
 
-	logger, err = oglslog.New(todoConf.Environment.String(), todoConf.LogLevel.SlogLevel())
-	if err != nil {
-		exitCode = 1
-		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+	authLogger := logger.With("app", auth.AppName)
 
-		return
-	}
-
-	todoLogger := logger.With("module", "todo")
-	authLogger := logger.With("app", "auth")
-
-	watermillLogger := watermill.NewSlogLogger(todoLogger)
+	watermillLogger := watermill.NewSlogLogger(authLogger)
 	rawBus := gochannel.NewGoChannel(
 		gochannel.Config{
 			OutputChannelBuffer: outputChannelBufferSize,
@@ -90,7 +78,7 @@ func main() {
 	// Wrap the raw infrastructure in the Adapter.
 	// systemBus := oglevents.NewWatermillBus(rawBus)
 
-	dbPool, err = getDatabasePoolConnexion(ctx, todoLogger, todoConf.Database.URL())
+	dbPool, err = getDatabasePoolConnexion(ctx, authLogger, authConf.Database.URL())
 	if err != nil {
 		logError("creating database pool", err)
 
@@ -98,10 +86,18 @@ func main() {
 	}
 
 	// Create authApp first (todo depends on it)
-	authApp := auth.New(authConf, dbPool, systemBus, authLogger)
+	authApp, err := auth.New(auth.Infrastructure{
+		DBPool:   dbPool,
+		EventBus: systemBus,
+		Logger:   authLogger,
+	})
+	if err != nil {
+		logError("failed to initialize auth app", err)
+		return
+	}
 
 	// notifLogger := logger.With("module", "notifications")
-	modules := []oglcore.Module{
+	modules := []oglcore.App{
 		authApp,
 		// Use RabitMQ consummer instead
 		// notifications.Build(rawBus, notifLogger),
@@ -112,13 +108,12 @@ func main() {
 	err = platformRuner.Run(ctx)
 	if err != nil {
 		logError("platform error", err)
-		exitCode = 1
-
 		return
 	}
 }
 
 func logError(msg string, err error) {
+	exitCode = 1
 	l := slog.New(oglslog.StderrTxtHandler(slog.LevelDebug, nil))
 	l.Error(msg, "details", errFormater(err, true))
 }

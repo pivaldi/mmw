@@ -12,7 +12,6 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/jackc/pgx/v5/pgxpool"
-	oglos "github.com/ovya/ogl/os"
 	oglcore "github.com/ovya/ogl/platform/core"
 	oglevents "github.com/ovya/ogl/platform/events"
 	oglrunner "github.com/ovya/ogl/platform/runner"
@@ -21,6 +20,7 @@ import (
 	defauth "github.com/pivaldi/mmw/contracts/definitions/auth"
 	"github.com/pivaldi/mmw/notifications"
 	"github.com/pivaldi/mmw/todo"
+	todoConfig "github.com/pivaldi/mmw/todo/config"
 	"github.com/rotisserie/eris"
 )
 
@@ -45,17 +45,7 @@ func main() {
 		os.Exit(exit)
 	}()
 
-	envMap := oglos.EnvMap()
-
-	todoConf, err := todo.GetConfig(ctx, "TODO_", envMap)
-	if err != nil {
-		exit = 1
-		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
-
-		return
-	}
-
-	authConf, err := auth.GetConfig(ctx, "AUTH_", envMap)
+	todoConf, err := todoConfig.Load(ctx, "TODO_")
 	if err != nil {
 		exit = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
@@ -72,8 +62,8 @@ func main() {
 		return
 	}
 
-	todoLogger := logger.With("app", "todo")
-	authLogger := logger.With("app", "auth")
+	todoLogger := logger.With("app", todo.AppName)
+	authLogger := logger.With("app", auth.AppName)
 	notifLogger := logger.With("app", "notifications")
 
 	watermillLogger := watermill.NewSlogLogger(todoLogger)
@@ -94,21 +84,29 @@ func main() {
 	}
 
 	// Create authApp first, todo depends on it.
-	authApp := auth.New(authConf, dbPool, systemBus, authLogger)
+	authApp, err := auth.New(auth.Infrastructure{
+		DBPool:   dbPool,
+		EventBus: systemBus,
+		Logger:   authLogger,
+	})
+	if err != nil {
+		logError(todoLogger, "failed to initialize auth app", err)
+		return
+	}
 	authSvc := defauth.NewInprocClient(authApp)
 
-	todoApp, err := todo.New(todoConf, todo.Infrastructure{
+	todoApp, err := todo.New(todo.Infrastructure{
 		DBPool:   dbPool,
 		EventBus: systemBus,
 		Logger:   todoLogger,
 		AuthSvc:  authSvc,
 	})
 	if err != nil {
-		logError(todoLogger, "creating todo app failed", err)
+		logError(todoLogger, "failed to initialize todo app", err)
 		return
 	}
 
-	modules := []oglcore.Module{
+	modules := []oglcore.App{
 		todoApp,
 		authApp,
 		notifications.New(rawBus, notifLogger),

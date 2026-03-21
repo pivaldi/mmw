@@ -36,11 +36,11 @@ func (c *HttpClient) ValidateToken(ctx context.Context, token string) (uuid.UUID
 		return uuid.Nil, fmt.Errorf("validating token: %w", err)
 	}
 
-	if !resp.Msg.IsValid {
+	if !resp.Msg.GetIsValid() {
 		return uuid.Nil, fmt.Errorf("token is invalid or expired")
 	}
 
-	id, err := uuid.Parse(resp.Msg.UserId)
+	id, err := uuid.Parse(resp.Msg.GetUserId())
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("parsing user ID from auth response: %w", err)
 	}

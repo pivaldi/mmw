@@ -79,7 +79,7 @@ if echo "$STAGED_FILES" | grep -q '\.go$'; then
     st.do golangci-lint run --fix
     st.done
     st.doing 'Re-add any files that were fixed'
-    st.do echo "$STAGED_FILES" | grep '\.go$' | xargs -r git add
+    echo "$STAGED_FILES" | grep '\.go$' | xargs -r git add
     st.done
 else
     st.nothing
