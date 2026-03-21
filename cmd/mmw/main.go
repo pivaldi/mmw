@@ -16,11 +16,11 @@ import (
 	oglevents "github.com/ovya/ogl/platform/events"
 	oglrunner "github.com/ovya/ogl/platform/runner"
 	oglslog "github.com/ovya/ogl/slog"
-	"github.com/pivaldi/mmw/auth"
-	defauth "github.com/pivaldi/mmw/contracts/definitions/auth"
-	"github.com/pivaldi/mmw/notifications"
-	"github.com/pivaldi/mmw/todo"
-	todoConfig "github.com/pivaldi/mmw/todo/config"
+	"github.com/pivaldi/mmw-auth"
+	defauth "github.com/pivaldi/mmw-contracts/definitions/auth"
+	"github.com/pivaldi/mmw-notifications"
+	"github.com/pivaldi/mmw-todo"
+	todoConfig "github.com/pivaldi/mmw-todo/config"
 	"github.com/rotisserie/eris"
 )
 

@@ -10,8 +10,8 @@ tool (
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/ovya/ogl v0.0.0-20260319180015-237c847c1f31
-	github.com/pivaldi/mmw/notifications v0.0.0-00010101000000-000000000000
-	github.com/pivaldi/mmw/todo v0.0.0-00010101000000-000000000000
+	github.com/pivaldi/mmw-notifications v0.0.0-00010101000000-000000000000
+	github.com/pivaldi/mmw-todo v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -42,7 +42,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/pivaldi/mmw/contracts v0.0.0-20260219143251-c15d21c7ad4c // indirect
+	github.com/pivaldi/mmw-contracts v0.0.0-20260219143251-c15d21c7ad4c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rotisserie/eris v0.5.4 // indirect
 	github.com/rs/cors v1.11.1 // indirect
@@ -67,8 +67,8 @@ require (
 	gotest.tools/gotestsum v1.13.0 // indirect
 )
 
-replace github.com/pivaldi/mmw/notifications => ./services/notifications
+replace github.com/pivaldi/mmw-notifications => ./services/notifications
 
-replace github.com/pivaldi/mmw/todo => ./services/todo
+replace github.com/pivaldi/mmw-todo => ./services/todo
 
 replace github.com/ovya/ogl => ./libs/ogl

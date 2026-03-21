@@ -1,8 +1,0 @@
-connectrpc.com/connect v1.19.1 h1:R5M57z05+90EfEvCY1b7hBxDVOUl45PrtXtAV2fOC14=
-connectrpc.com/connect v1.19.1/go.mod h1:tN20fjdGlewnSFeZxLKb0xwIZ6ozc3OQs2hTXy4du9w=
-github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
-github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/pivaldi/mmw/contracts v0.0.0-20260312102205-fec929f76b93 h1:MWlaSKUUX1d4CmAEpqltg+nWxW/x0IMY9YVUOxguhwE=
-github.com/pivaldi/mmw/contracts v0.0.0-20260312102205-fec929f76b93/go.mod h1:UP8j58qrkstlNkOGteNp896DLUf0jS7zlBsg6E4NaY8=
-google.golang.org/protobuf v1.36.11 h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
-google.golang.org/protobuf v1.36.11/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=

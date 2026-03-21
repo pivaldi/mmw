@@ -52,8 +52,8 @@ function configAppEnv() {
         sed -i "s/CONFIG_APP_ENV/${env_name}/g" "${APP_ROOT_PATH}/.envrc"
         cp "${APP_ROOT_PATH}/config_${env_name}.toml.example" "${APP_ROOT_PATH}/config_${env_name}.toml"
 
-        _done
-    } || _doneNTD
+        st.done
+    } || st.nothing
 
     [ -z "$env_name" ] || export APP_ENV=$env_name
 }

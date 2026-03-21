@@ -1,6 +1,6 @@
 [submodule "services/todo"]
 	path = services/todo
-	url = https://github.com/pivaldi/mmw-todo
+	url = https://github.com/pivaldi/mmw-todo.git
 [submodule "libs/ogl"]
 	path = libs/ogl
 	url = https://github.com/ovya/ogl.git
@@ -10,3 +10,9 @@
 [submodule "services/notifications"]
 	path = services/notifications
 	url = https://github.com/pivaldi/mmw-notifications.git
+[submodule "services/auth"]
+	path = services/auth
+	url = https://github.com/pivaldi/mmw-auth.git
+[submodule "contracts"]
+	path = contracts
+	url = https://github.com/pivaldi/mmw-contracts.git

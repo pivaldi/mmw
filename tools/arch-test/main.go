@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/pivaldi/mmw/tools/arch-test/custom"
-	"github.com/pivaldi/mmw/tools/arch-test/orchestrator"
-	"github.com/pivaldi/mmw/tools/arch-test/reporter"
+	"github.com/pivaldi/mmw-arch-test/custom"
+	"github.com/pivaldi/mmw-arch-test/orchestrator"
+	"github.com/pivaldi/mmw-arch-test/reporter"
 )
 
 const archTaskName = "arch:test"

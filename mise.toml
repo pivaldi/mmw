@@ -37,6 +37,10 @@ run = """
   cd {{config_root}} || exit 1
   source scripts/libs/bash-stepper/st.bash
 
+  st.h1 'Fix GOPRIVATE for this project'
+  st.doing go env -w "GOPRIVATE=github.com/pivaldi/mmw-*"
+  st.done
+
   st.doing 'Synchronize Go Workspace'
   st.do go work sync
   st.done

@@ -1,4 +1,4 @@
-module github.com/pivaldi/mmw/tools/arch-test
+module github.com/pivaldi/mmw-arch-test
 
 go 1.25.0
 
