@@ -50,14 +50,21 @@ func DiscoverServices(servicesDir, archTaskName string) ([]Service, error) {
 func hasMiseArchCheck(miseTomlPath, archTaskName string) (bool, error) {
 	file, err := os.Open(miseTomlPath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+
 		return false, fmt.Errorf("fail to open %s : %w", miseTomlPath, err)
 	}
 	defer file.Close()
 
+	doubleQuoted := fmt.Sprintf(`"%s"`, archTaskName)
+	singleQuoted := fmt.Sprintf("'%s'", archTaskName)
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if strings.Contains(line, `"arch:check"`) || strings.Contains(line, fmt.Sprintf("'%s'", archTaskName)) {
+		if strings.Contains(line, doubleQuoted) || strings.Contains(line, singleQuoted) {
 			return true, nil
 		}
 	}

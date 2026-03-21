@@ -5,7 +5,10 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"time"
 )
+
+const checkTimeout = 10 * time.Minute
 
 // CheckResult represents the result of running arch:check on a service
 type CheckResult struct {
@@ -17,14 +20,24 @@ type CheckResult struct {
 // RunServiceCheck executes mise run arch:check for a service
 func RunServiceCheck(servicePath, serviceName string) CheckResult {
 	// First, trust the mise.toml file in this directory
-	trustCmd := exec.CommandContext(context.Background(), "mise", "trust")
+	trustCtx, trustCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer trustCancel()
+
+	trustCmd := exec.CommandContext(trustCtx, "mise", "trust")
 	trustCmd.Dir = servicePath
 	if err := trustCmd.Run(); err != nil {
-		panic(fmt.Errorf("mise.toml is not trusted: %w", err))
+		return CheckResult{
+			ServiceName: serviceName,
+			ExitCode:    1,
+			Output:      fmt.Sprintf("mise trust failed: %v", err),
+		}
 	}
 
 	// Now run the arch:check task
-	cmd := exec.CommandContext(context.Background(), "mise", "run", "arch:check")
+	ctx, cancel := context.WithTimeout(context.Background(), checkTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "mise", "run", "arch:check")
 	cmd.Dir = servicePath
 
 	var stdout, stderr bytes.Buffer
@@ -38,7 +51,6 @@ func RunServiceCheck(servicePath, serviceName string) CheckResult {
 		if exitErr, ok := err.(*exec.ExitError); ok {
 			exitCode = exitErr.ExitCode()
 		} else {
-			// Command failed to start or other error
 			exitCode = 1
 		}
 	}

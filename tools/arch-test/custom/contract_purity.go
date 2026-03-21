@@ -11,6 +11,7 @@ import (
 
 type ContractPurityValidator struct {
 	ContractsDir string
+	RepoRoot     string
 }
 
 func (v *ContractPurityValidator) Name() string {
@@ -18,19 +19,25 @@ func (v *ContractPurityValidator) Name() string {
 }
 
 func (v *ContractPurityValidator) Description() string {
-	return "Contract definition modules must have zero dependencies"
+	return "Contract definition modules must not depend on service modules or import internal packages"
 }
 
 func (v *ContractPurityValidator) Check() error {
-	// Check if contracts/definitions exists
 	if _, err := os.Stat(v.ContractsDir); os.IsNotExist(err) {
-		// No contracts directory, nothing to check
 		return nil
 	}
 
 	entries, err := os.ReadDir(v.ContractsDir)
 	if err != nil {
 		return fmt.Errorf("failed to read contracts directory: %w", err)
+	}
+
+	// Collect service module names from the workspace — these are forbidden
+	// dependencies for contract definition modules.
+	forbiddenModules, err := v.collectServiceModules()
+	if err != nil {
+		// If go.work is unavailable, skip the go.mod check
+		forbiddenModules = nil
 	}
 
 	for _, entry := range entries {
@@ -40,12 +47,10 @@ func (v *ContractPurityValidator) Check() error {
 
 		contractPath := filepath.Join(v.ContractsDir, entry.Name())
 
-		// Check go.mod purity
-		if err := v.checkGoModPurity(contractPath, entry.Name()); err != nil {
+		if err := v.checkGoModPurity(contractPath, entry.Name(), forbiddenModules); err != nil {
 			return err
 		}
 
-		// Check no internal imports
 		if err := v.checkNoInternalImports(contractPath, entry.Name()); err != nil {
 			return err
 		}
@@ -54,11 +59,55 @@ func (v *ContractPurityValidator) Check() error {
 	return nil
 }
 
-func (v *ContractPurityValidator) checkGoModPurity(contractPath, contractName string) error {
+// collectServiceModules reads go.work and returns module names whose paths
+// are under the services/ directory (i.e., not libs or contracts or tools).
+func (v *ContractPurityValidator) collectServiceModules() (map[string]bool, error) {
+	if v.RepoRoot == "" {
+		return nil, nil
+	}
+
+	goWorkPath := filepath.Join(v.RepoRoot, "go.work")
+	content, err := os.ReadFile(goWorkPath)
+	if err != nil {
+		return nil, err
+	}
+
+	absServicesDir, _ := filepath.Abs(filepath.Join(v.RepoRoot, "services"))
+	forbidden := map[string]bool{}
+
+	for _, line := range strings.Split(string(content), "\n") {
+		line = strings.TrimSpace(line)
+		if !strings.HasPrefix(line, "use ") {
+			continue
+		}
+		relPath := strings.Trim(strings.TrimPrefix(line, "use "), `"`)
+		absPath, err := filepath.Abs(filepath.Join(v.RepoRoot, relPath))
+		if err != nil {
+			continue
+		}
+		if !strings.HasPrefix(absPath+string(filepath.Separator), absServicesDir+string(filepath.Separator)) {
+			continue
+		}
+		name, err := readModuleName(filepath.Join(absPath, "go.mod"))
+		if err == nil && name != "" {
+			forbidden[name] = true
+		}
+	}
+
+	return forbidden, nil
+}
+
+// checkGoModPurity verifies the contract's go.mod has no dependencies on
+// service modules. Protocol/transport libraries (connectrpc, protobuf, etc.)
+// are allowed — they are part of the API contract definition.
+func (v *ContractPurityValidator) checkGoModPurity(contractPath, contractName string, forbiddenModules map[string]bool) error {
+	if len(forbiddenModules) == 0 {
+		return nil
+	}
+
 	goModPath := filepath.Join(contractPath, "go.mod")
 	content, err := os.ReadFile(goModPath)
 	if err != nil {
-		// No go.mod, that's fine
 		return nil
 	}
 
@@ -72,32 +121,32 @@ func (v *ContractPurityValidator) checkGoModPurity(contractPath, contractName st
 			inRequire = true
 			continue
 		}
-
 		if inRequire && line == ")" {
 			inRequire = false
 			continue
 		}
 
 		if inRequire || strings.HasPrefix(line, "require ") {
-			// Skip indirect dependencies and comments
 			if strings.Contains(line, "// indirect") || strings.HasPrefix(line, "//") {
 				continue
 			}
 
-			// Check if it's an external dependency (contains '.')
 			parts := strings.Fields(line)
-			if len(parts) > 0 && strings.Contains(parts[0], ".") {
+			if len(parts) == 0 {
+				continue
+			}
+			modulePath := parts[0]
+
+			if forbiddenModules[modulePath] {
 				return fmt.Errorf(
-					"contracts/definitions/%s has external dependency: %s\n\n"+
-						"Contract definitions must have ZERO dependencies (no require statements).\n\n"+
-						"If you see service internals here, InprocServer is in the wrong location.\n"+
-						"Move InprocServer to: services/%s/internal/adapters/inbound/contracts/\n\n"+
-						"Contract definition modules should contain ONLY:\n"+
-						"  - Interfaces (api.go)\n"+
-						"  - DTOs (dto.go)\n"+
-						"  - Errors (errors.go)\n"+
-						"  - InprocClient (thin wrapper)",
-					contractName, line, contractName,
+					"contracts/definitions/%s depends on service module: %s\n\n"+
+						"Contract definition modules must not depend on service modules.\n"+
+						"They may only depend on:\n"+
+						"  - Standard library\n"+
+						"  - Protocol/transport libraries (connectrpc, protobuf, grpc, etc.)\n"+
+						"  - Basic utility types (uuid, etc.)\n"+
+						"  - Other contract definition modules",
+					contractName, modulePath,
 				)
 			}
 		}

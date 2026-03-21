@@ -13,7 +13,7 @@ import (
 	"github.com/pivaldi/mmw-arch-test/reporter"
 )
 
-const archTaskName = "arch:test"
+const archTaskName = "arch:check"
 
 var headerColor = color.New(color.FgBlue)
 var errorColor = color.New(color.FgRed)
@@ -36,11 +36,10 @@ func main() {
 
 	// Run arch checks for each service
 	headerColor.Println("Running architecture checks…")
-	result := orchestrator.CheckResult{}
 	for _, service := range services {
 		var checkErr error
 		if service.HasArchCheck {
-			result = orchestrator.RunServiceCheck(service.Path, service.Name)
+			result := orchestrator.RunServiceCheck(service.Path, service.Name)
 			if result.ExitCode != 0 {
 				eCodeStr := strconv.Itoa(result.ExitCode)
 				outPut := errorColor.Sprint(strings.TrimSpace(result.Output))
@@ -63,6 +62,7 @@ func main() {
 	// Contract purity validator
 	contractValidator := &custom.ContractPurityValidator{
 		ContractsDir: "./contracts/definitions",
+		RepoRoot:     ".",
 	}
 	err = contractValidator.Check()
 	rep.PrintCheck(
