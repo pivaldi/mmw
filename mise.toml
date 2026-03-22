@@ -309,6 +309,7 @@ run = """
 
   cd {{config_root}} || exit 1
   source scripts/libs/bash-stepper/st.bash
+  st.quiet
 
   st.h1 "Generate code for all projects"
 

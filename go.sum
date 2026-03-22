@@ -249,6 +249,8 @@ github.com/pivaldi/mmw-auth v0.0.0-20260321170503-9a5c20132c89 h1:McvUXjn+R4K9Z5
 github.com/pivaldi/mmw-auth v0.0.0-20260321170503-9a5c20132c89/go.mod h1:UShDHPPXLu4u7iUeJ0X/cx9TtmIcAMZzmf3zK81tZXc=
 github.com/pivaldi/mmw-contracts v0.0.0-20260321163605-264690edbe4e h1:sCH6//WqRPoRQwQRzlDSx2dKwokQHYWZXP3eycyXTqs=
 github.com/pivaldi/mmw-contracts v0.0.0-20260321163605-264690edbe4e/go.mod h1:BO34iOojlC3yTT3sn9FGnM4b9ldP96OfREOY4iZ0xc8=
+github.com/pivaldi/mmw-contracts v0.0.0-20260321181528-8db6a825b479 h1:DR+/WKkC4+3YTv0V7TLSVHOA+DVo9cZlAaPpeL6WEbU=
+github.com/pivaldi/mmw-contracts v0.0.0-20260321181528-8db6a825b479/go.mod h1:3HtCUgM9ptl0Wtm04uaMf4BsVkqmG15QR/IUx8QeWhs=
 github.com/pivaldi/mmw-contracts/definitions/auth v0.0.0-20260321163605-264690edbe4e h1:xKm9ZvfNzh0O3KH84+GhmxJ1I/KJN2K/K5HoMcZcaQ0=
 github.com/pivaldi/mmw-contracts/definitions/auth v0.0.0-20260321163605-264690edbe4e/go.mod h1:SDYs5uL8WQvo2zydjlNn7o9pp4pQrybFtpZGFYARLjk=
 github.com/pivaldi/mmw-contracts/definitions/todo v0.0.0-20260321163605-264690edbe4e h1:Tk9IkWvxPeB/O8jvHNwX6hlFQ+gBwewXL64H1UxTVCQ=

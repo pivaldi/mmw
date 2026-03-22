@@ -54,7 +54,7 @@ func main() {
 	}
 
 	// TODO: Add logLevel in the mmw config
-	logger, err := oglslog.New(todoConf.Environment.String(), todoConf.LogLevel.SlogLevel())
+	logger, err := oglslog.New(oglslog.HandlerText, todoConf.LogLevel.SlogLevel())
 	if err != nil {
 		exit = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
