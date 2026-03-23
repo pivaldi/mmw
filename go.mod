@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/ovya/ogl v0.0.0-20260321231833-7dcb9ea09c73
 	github.com/pivaldi/mmw-auth v0.0.0-20260321170503-9a5c20132c89
-	github.com/pivaldi/mmw-contracts/definitions/auth v0.0.0-20260321163605-264690edbe4e
+	github.com/pivaldi/mmw-contracts v0.0.0-20260321163605-264690edbe4e
 	github.com/pivaldi/mmw-notifications v0.0.0-20260321175208-fad54377c770
 	github.com/pivaldi/mmw-todo v0.0.0-20260321181339-5d9491538aa7
 	github.com/rotisserie/eris v0.5.4
@@ -47,8 +47,7 @@ require (
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/pivaldi/mmw-contracts v0.0.0-20260321181528-8db6a825b479 // indirect
-	github.com/pivaldi/mmw-contracts/definitions/todo v0.0.0-20260321163605-264690edbe4e // indirect
+
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
@@ -72,9 +71,3 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gotest.tools/gotestsum v1.13.0 // indirect
 )
-
-replace github.com/pivaldi/mmw-notifications => ./services/notifications
-
-replace github.com/pivaldi/mmw-todo => ./services/todo
-
-replace github.com/ovya/ogl => ./libs/ogl

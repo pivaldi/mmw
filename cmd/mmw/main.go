@@ -20,7 +20,7 @@ import (
 	defauth "github.com/pivaldi/mmw-contracts/definitions/auth"
 	notifications "github.com/pivaldi/mmw-notifications"
 	todo "github.com/pivaldi/mmw-todo"
-	todoConfig "github.com/pivaldi/mmw-todo/config"
+	mmwConfig "github.com/pivaldi/mmw/config"
 	"github.com/rotisserie/eris"
 )
 
@@ -29,9 +29,7 @@ const (
 	minDatabaseURLLength    = 20
 )
 
-var errFormater = eris.ToJSON
-
-var exit = 0
+var exitCode = 0
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -42,21 +40,20 @@ func main() {
 			dbPool.Close()
 		}
 		cancel()
-		os.Exit(exit)
+		os.Exit(exitCode)
 	}()
 
-	todoConf, err := todoConfig.Load(ctx, "TODO_")
+	config, err := mmwConfig.Load(ctx)
 	if err != nil {
-		exit = 1
+		exitCode = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
 
 		return
 	}
 
-	// TODO: Add logLevel in the mmw config
-	logger, err := oglslog.New(oglslog.HandlerText, todoConf.LogLevel.SlogLevel())
+	logger, err := oglslog.New(oglslog.HandlerText, config.LogLevel.SlogLevel())
 	if err != nil {
-		exit = 1
+		exitCode = 1
 		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
 
 		return
@@ -64,20 +61,13 @@ func main() {
 
 	todoLogger := logger.With("app", todo.AppName)
 	authLogger := logger.With("app", auth.AppName)
-	notifLogger := logger.With("app", "notifications")
+	notifLogger := logger.With("app", notifications.AppName)
 
-	watermillLogger := watermill.NewSlogLogger(todoLogger)
-	rawBus := gochannel.NewGoChannel(
-		gochannel.Config{
-			OutputChannelBuffer: outputChannelBufferSize,
-			Persistent:          true,
-		},
-		watermillLogger,
-	)
+	rawBus := getRawbus(todoLogger)
 	defer rawBus.Close()
 	systemBus := oglevents.NewWatermillBus(rawBus)
 
-	dbPool, err = getDatabasePoolConnexion(ctx, logger, todoConf.Database.URL())
+	dbPool, err = getDatabasePoolConnexion(ctx, logger, config.TodoConfig.Database.URL())
 	if err != nil {
 		logError(logger, "creating database pool", err)
 		return
@@ -106,10 +96,13 @@ func main() {
 		return
 	}
 
+	notifEvents := todo.NotifyEvents
+	notifEvents = append(notifEvents, auth.NotifyEvents...)
+
 	modules := []oglcore.App{
 		todoApp,
 		authApp,
-		notifications.New(rawBus, notifLogger),
+		notifications.New(rawBus, notifLogger, notifEvents...),
 	}
 
 	platformRuner := oglrunner.New(logger, modules)
@@ -123,8 +116,8 @@ func main() {
 }
 
 func logError(logger *slog.Logger, msg string, err error) {
-	exit = 1
-	logger.Error(msg, "details", errFormater(err, true))
+	exitCode = 1
+	logger.Error(msg, "err", err)
 }
 
 func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, dbUrl string) (*pgxpool.Pool, error) {
@@ -142,6 +135,19 @@ func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, dbUrl st
 	logger.Info("database connection established")
 
 	return dbPool, nil
+}
+
+func getRawbus(logger *slog.Logger) *gochannel.GoChannel {
+	watermillLogger := watermill.NewSlogLogger(logger)
+	rawBus := gochannel.NewGoChannel(
+		gochannel.Config{
+			OutputChannelBuffer: outputChannelBufferSize,
+			Persistent:          true,
+		},
+		watermillLogger,
+	)
+
+	return rawBus
 }
 
 // maskDatabaseURL masks sensitive parts of database URL for logging
