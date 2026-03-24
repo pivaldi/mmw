@@ -59,9 +59,9 @@ func main() {
 		return
 	}
 
-	dbPool, err = getDatabasePoolConnexion(ctx, logger, config.TodoConfig.Database.URL())
+	dbPool, err = getDatabasePoolConnexion(ctx, logger, config.MainDatabase.URL())
 	if err != nil {
-		logError(logger, "creating database pool", err)
+		logError(logger, "failed to create database pool", err)
 		return
 	}
 
