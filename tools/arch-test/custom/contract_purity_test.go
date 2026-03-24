@@ -10,7 +10,7 @@ import (
 func TestContractPurityValidator_ZeroDependencies(t *testing.T) {
 	tmpDir := t.TempDir()
 	contractDir := filepath.Join(tmpDir, "contracts", "definitions", "testcontract")
-	os.MkdirAll(contractDir, 0755)
+	os.MkdirAll(contractDir, 0o755)
 
 	// Create go.mod with external dependency
 	goMod := `module github.com/test/testcontract
@@ -21,7 +21,7 @@ require (
 	github.com/external/pkg v1.0.0
 )
 `
-	os.WriteFile(filepath.Join(contractDir, "go.mod"), []byte(goMod), 0644)
+	os.WriteFile(filepath.Join(contractDir, "go.mod"), []byte(goMod), 0o644)
 
 	validator := &ContractPurityValidator{
 		ContractsDir: filepath.Join(tmpDir, "contracts", "definitions"),
@@ -40,14 +40,14 @@ require (
 func TestContractPurityValidator_NoInternalImports(t *testing.T) {
 	tmpDir := t.TempDir()
 	contractDir := filepath.Join(tmpDir, "contracts", "definitions", "testcontract")
-	os.MkdirAll(contractDir, 0755)
+	os.MkdirAll(contractDir, 0o755)
 
 	// Create go.mod with no dependencies
 	goMod := `module github.com/test/testcontract
 
 go 1.21
 `
-	os.WriteFile(filepath.Join(contractDir, "go.mod"), []byte(goMod), 0644)
+	os.WriteFile(filepath.Join(contractDir, "go.mod"), []byte(goMod), 0o644)
 
 	// Create .go file with internal import
 	goFile := `package testcontract
@@ -58,7 +58,7 @@ import (
 
 type Client struct {}
 `
-	os.WriteFile(filepath.Join(contractDir, "client.go"), []byte(goFile), 0644)
+	os.WriteFile(filepath.Join(contractDir, "client.go"), []byte(goFile), 0o644)
 
 	validator := &ContractPurityValidator{
 		ContractsDir: filepath.Join(tmpDir, "contracts", "definitions"),
@@ -77,14 +77,14 @@ type Client struct {}
 func TestContractPurityValidator_Valid(t *testing.T) {
 	tmpDir := t.TempDir()
 	contractDir := filepath.Join(tmpDir, "contracts", "definitions", "testcontract")
-	os.MkdirAll(contractDir, 0755)
+	os.MkdirAll(contractDir, 0o755)
 
 	// Create clean go.mod
 	goMod := `module github.com/test/testcontract
 
 go 1.21
 `
-	os.WriteFile(filepath.Join(contractDir, "go.mod"), []byte(goMod), 0644)
+	os.WriteFile(filepath.Join(contractDir, "go.mod"), []byte(goMod), 0o644)
 
 	// Create .go file with only stdlib imports
 	goFile := `package testcontract
@@ -96,7 +96,7 @@ import (
 
 type Client struct {}
 `
-	os.WriteFile(filepath.Join(contractDir, "client.go"), []byte(goFile), 0644)
+	os.WriteFile(filepath.Join(contractDir, "client.go"), []byte(goFile), 0o644)
 
 	validator := &ContractPurityValidator{
 		ContractsDir: filepath.Join(tmpDir, "contracts", "definitions"),

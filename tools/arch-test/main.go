@@ -15,8 +15,10 @@ import (
 
 const archTaskName = "arch:check"
 
-var headerColor = color.New(color.FgBlue)
-var errorColor = color.New(color.FgRed)
+var (
+	headerColor = color.New(color.FgBlue)
+	errorColor  = color.New(color.FgRed)
+)
 
 func main() {
 	// Discover all services

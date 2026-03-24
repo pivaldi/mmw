@@ -64,8 +64,13 @@ run = """
 
   st.quiet
 
+  st.h1 'Pre-Stowing'
   st.doing 'Copying gited lib to stow common package'
   st.do command cp -f -- scripts/libs/bash-stepper/st.bash stow/common/scripts/common/libs/
+  st.done
+
+  st.doing 'Copying .golangci.yml to ogl lib'
+  st.do command cp -f -- .golangci.yml libs/ogl/
   st.done
 
   st.h1 'Stowing Services'

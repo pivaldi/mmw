@@ -14,7 +14,7 @@ func TestRunServiceCheck_Success(t *testing.T) {
 	miseToml := `[tasks."arch:check"]
 run = "exit 0"
 `
-	err := os.WriteFile(filepath.Join(tmpDir, "mise.toml"), []byte(miseToml), 0644)
+	err := os.WriteFile(filepath.Join(tmpDir, "mise.toml"), []byte(miseToml), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create mise.toml: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestRunServiceCheck_Failure(t *testing.T) {
 	miseToml := `[tasks."arch:check"]
 run = "exit 42"
 `
-	err := os.WriteFile(filepath.Join(tmpDir, "mise.toml"), []byte(miseToml), 0644)
+	err := os.WriteFile(filepath.Join(tmpDir, "mise.toml"), []byte(miseToml), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create mise.toml: %v", err)
 	}

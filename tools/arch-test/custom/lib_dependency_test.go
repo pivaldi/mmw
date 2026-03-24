@@ -10,14 +10,14 @@ import (
 func TestLibDependencyValidator_NoRootDirImports(t *testing.T) {
 	tmpDir := t.TempDir()
 	libDir := filepath.Join(tmpDir, "libs", "mylib")
-	os.MkdirAll(libDir, 0755)
+	os.MkdirAll(libDir, 0o755)
 
 	// Create root go.mod
 	rootGoMod := `module github.com/test/project
 
 go 1.21
 `
-	os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(rootGoMod), 0644)
+	os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(rootGoMod), 0o644)
 
 	// Create lib file importing services (forbidden)
 	libFile := `package mylib
@@ -28,11 +28,11 @@ import (
 
 func DoSomething() {}
 `
-	os.WriteFile(filepath.Join(libDir, "lib.go"), []byte(libFile), 0644)
+	os.WriteFile(filepath.Join(libDir, "lib.go"), []byte(libFile), 0o644)
 
 	validator := &LibDependencyValidator{
-		LibsDir:    filepath.Join(tmpDir, "libs"),
-		RepoRoot:   tmpDir,
+		LibsDir:  filepath.Join(tmpDir, "libs"),
+		RepoRoot: tmpDir,
 	}
 
 	err := validator.Check()
@@ -48,14 +48,14 @@ func DoSomething() {}
 func TestLibDependencyValidator_AllowsStdlibAndExternal(t *testing.T) {
 	tmpDir := t.TempDir()
 	libDir := filepath.Join(tmpDir, "libs", "mylib")
-	os.MkdirAll(libDir, 0755)
+	os.MkdirAll(libDir, 0o755)
 
 	// Create root go.mod
 	rootGoMod := `module github.com/test/project
 
 go 1.21
 `
-	os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(rootGoMod), 0644)
+	os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(rootGoMod), 0o644)
 
 	// Create lib file importing stdlib and external deps
 	libFile := `package mylib
@@ -68,11 +68,11 @@ import (
 
 func DoSomething() {}
 `
-	os.WriteFile(filepath.Join(libDir, "lib.go"), []byte(libFile), 0644)
+	os.WriteFile(filepath.Join(libDir, "lib.go"), []byte(libFile), 0o644)
 
 	validator := &LibDependencyValidator{
-		LibsDir:    filepath.Join(tmpDir, "libs"),
-		RepoRoot:   tmpDir,
+		LibsDir:  filepath.Join(tmpDir, "libs"),
+		RepoRoot: tmpDir,
 	}
 
 	err := validator.Check()
@@ -85,22 +85,22 @@ func TestLibDependencyValidator_AllowsOtherLibs(t *testing.T) {
 	tmpDir := t.TempDir()
 	libADir := filepath.Join(tmpDir, "libs", "liba")
 	libBDir := filepath.Join(tmpDir, "libs", "libb")
-	os.MkdirAll(libADir, 0755)
-	os.MkdirAll(libBDir, 0755)
+	os.MkdirAll(libADir, 0o755)
+	os.MkdirAll(libBDir, 0o755)
 
 	// Create root go.mod
 	rootGoMod := `module github.com/test/project
 
 go 1.21
 `
-	os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(rootGoMod), 0644)
+	os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(rootGoMod), 0o644)
 
 	// Create lib A
 	libAFile := `package liba
 
 func FuncA() {}
 `
-	os.WriteFile(filepath.Join(libADir, "liba.go"), []byte(libAFile), 0644)
+	os.WriteFile(filepath.Join(libADir, "liba.go"), []byte(libAFile), 0o644)
 
 	// Create lib B importing lib A (allowed)
 	libBFile := `package libb
@@ -113,11 +113,11 @@ func FuncB() {
 	liba.FuncA()
 }
 `
-	os.WriteFile(filepath.Join(libBDir, "libb.go"), []byte(libBFile), 0644)
+	os.WriteFile(filepath.Join(libBDir, "libb.go"), []byte(libBFile), 0o644)
 
 	validator := &LibDependencyValidator{
-		LibsDir:    filepath.Join(tmpDir, "libs"),
-		RepoRoot:   tmpDir,
+		LibsDir:  filepath.Join(tmpDir, "libs"),
+		RepoRoot: tmpDir,
 	}
 
 	err := validator.Check()

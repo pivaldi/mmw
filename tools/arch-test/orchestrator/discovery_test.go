@@ -16,15 +16,15 @@ func TestDiscoverServices(t *testing.T) {
 	service2 := filepath.Join(servicesDir, "service2")
 	notService := filepath.Join(servicesDir, "README.md")
 
-	os.MkdirAll(service1, 0755)
-	os.MkdirAll(service2, 0755)
-	os.WriteFile(notService, []byte("test"), 0644)
+	os.MkdirAll(service1, 0o755)
+	os.MkdirAll(service2, 0o755)
+	os.WriteFile(notService, []byte("test"), 0o644)
 
 	// Create mise.toml for service1
 	os.WriteFile(filepath.Join(service1, "mise.toml"), []byte(`
 [tasks."arch:check"]
 run = "arch-go check"
-`), 0644)
+`), 0o644)
 
 	services, err := DiscoverServices(servicesDir)
 	if err != nil {
