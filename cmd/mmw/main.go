@@ -12,9 +12,9 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/ovya/ogl/platform"
 	oglcore "github.com/ovya/ogl/platform/core"
 	oglevents "github.com/ovya/ogl/platform/events"
-	oglrunner "github.com/ovya/ogl/platform/runner"
 	oglslog "github.com/ovya/ogl/slog"
 	auth "github.com/pivaldi/mmw-auth"
 	defauth "github.com/pivaldi/mmw-contracts/definitions/auth"
@@ -59,56 +59,63 @@ func main() {
 		return
 	}
 
-	todoLogger := logger.With("module", todo.ModuleName)
-	authLogger := logger.With("module", auth.ModuleName)
-	notifLogger := logger.With("module", notifications.ModuleName)
-
-	rawBus := getRawbus(todoLogger)
-	defer rawBus.Close()
-	systemBus := oglevents.NewWatermillBus(rawBus)
-
 	dbPool, err = getDatabasePoolConnexion(ctx, logger, config.TodoConfig.Database.URL())
 	if err != nil {
 		logError(logger, "creating database pool", err)
 		return
 	}
 
+	rawBus := getRawbus(logger)
+	defer rawBus.Close()
+	systemBus := oglevents.NewWatermillBus(rawBus)
+
 	// Create authModule first, todo depends on it.
 	authModule, err := auth.New(auth.Infrastructure{
 		DBPool:   dbPool,
 		EventBus: systemBus,
-		Logger:   authLogger,
+		Logger:   logger.With("module", auth.ModuleName),
 	})
 	if err != nil {
-		logError(todoLogger, "failed to initialize auth module", err)
+		logError(logger, "failed to initialize auth module", err)
 		return
 	}
-	authSvc := defauth.NewInprocClient(authModule)
 
+	// Create the todo module
 	todoModule, err := todo.New(todo.Infrastructure{
 		DBPool:   dbPool,
 		EventBus: systemBus,
-		Logger:   todoLogger,
-		AuthSvc:  authSvc,
+		Logger:   logger.With("module", todo.ModuleName),
+		AuthSvc:  defauth.NewInprocClient(authModule),
 	})
 	if err != nil {
-		logError(todoLogger, "failed to initialize todo module", err)
+		logError(logger, "failed to initialize todo module", err)
 		return
 	}
 
+	// Create the notifications module
 	notifEvents := todo.NotifyEvents
 	notifEvents = append(notifEvents, auth.NotifyEvents...)
+	notifInfra := notifications.Infrastructure{
+		Subscriber:  rawBus,
+		Logger:      logger.With("module", notifications.ModuleName),
+		Topics:      notifEvents,
+		WithNotifer: true,
+	}
+	notifModule, err := notifications.New(notifInfra)
+	if err != nil {
+		logError(logger, "failed to initialyze notifications module", err)
+		return
+	}
 
+	// Platform startup
+	logger.Info("Platform startup…")
 	modules := []oglcore.Module{
 		todoModule,
 		authModule,
-		notifications.New(rawBus, notifLogger, notifEvents...),
+		notifModule,
 	}
 
-	platformRuner := oglrunner.New(logger, modules)
-
-	logger.Info("Starting the platform...")
-	err = platformRuner.Run(ctx)
+	err = platform.New(logger, modules).Run(ctx) // Blocks until shutdown
 	if err != nil {
 		logError(logger, "platform error", err)
 		return
