@@ -59,9 +59,9 @@ func main() {
 		return
 	}
 
-	todoLogger := logger.With("app", todo.AppName)
-	authLogger := logger.With("app", auth.AppName)
-	notifLogger := logger.With("app", notifications.AppName)
+	todoLogger := logger.With("module", todo.ModuleName)
+	authLogger := logger.With("module", auth.ModuleName)
+	notifLogger := logger.With("module", notifications.ModuleName)
 
 	rawBus := getRawbus(todoLogger)
 	defer rawBus.Close()
@@ -73,35 +73,35 @@ func main() {
 		return
 	}
 
-	// Create authApp first, todo depends on it.
-	authApp, err := auth.New(auth.Infrastructure{
+	// Create authModule first, todo depends on it.
+	authModule, err := auth.New(auth.Infrastructure{
 		DBPool:   dbPool,
 		EventBus: systemBus,
 		Logger:   authLogger,
 	})
 	if err != nil {
-		logError(todoLogger, "failed to initialize auth app", err)
+		logError(todoLogger, "failed to initialize auth module", err)
 		return
 	}
-	authSvc := defauth.NewInprocClient(authApp)
+	authSvc := defauth.NewInprocClient(authModule)
 
-	todoApp, err := todo.New(todo.Infrastructure{
+	todoModule, err := todo.New(todo.Infrastructure{
 		DBPool:   dbPool,
 		EventBus: systemBus,
 		Logger:   todoLogger,
 		AuthSvc:  authSvc,
 	})
 	if err != nil {
-		logError(todoLogger, "failed to initialize todo app", err)
+		logError(todoLogger, "failed to initialize todo module", err)
 		return
 	}
 
 	notifEvents := todo.NotifyEvents
 	notifEvents = append(notifEvents, auth.NotifyEvents...)
 
-	modules := []oglcore.App{
-		todoApp,
-		authApp,
+	modules := []oglcore.Module{
+		todoModule,
+		authModule,
 		notifications.New(rawBus, notifLogger, notifEvents...),
 	}
 

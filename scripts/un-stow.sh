@@ -27,7 +27,7 @@ cd "$APP_ROOT_PATH" || exit 1
 STOW_ABS_PATH=$(readlink -f "stow")
 
 SERVICES=()
-for dir in services/*/; do
+for dir in modules/*/; do
     SERVICES+=("$dir")
 done
 

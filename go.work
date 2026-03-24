@@ -4,8 +4,8 @@ use (
 	.
 	./contracts
 	./libs/ogl
-	./services/auth
-	./services/notifications
-	./services/todo
+	./modules/auth
+	./modules/notifications
+	./modules/todo
 	./tools/arch-test
 )

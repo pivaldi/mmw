@@ -9,7 +9,7 @@ The critical concept to grasp is that Stow expects the internal structure of a p
 
 * **The Stow Directory**: This is your "source of truth" (e.g., `poc/stow-source`).
 * **The Package**: A folder inside the Stow Directory (e.g., `common`).
-* **The Target**: The service where the scripts should appear (e.g., `poc/services/todo`).
+* **The Target**: The service where the scripts should appear (e.g., `poc/modules/todo`).
 
 When you "stow" the package, Stow creates **symbolic links** in the target.
 If your package contains a folder named `scripts/`, Stow will ensure a folder named `scripts/` appears in your service.
@@ -26,7 +26,7 @@ poc/ (Root)
 │           └── common/     <-- Subfolder 2 (This becomes the link)
 │               ├── db-wait.sh
 │               └── migrate.sh
-└── services/
+└── modules/
     └── todo/               <-- The "Target"
         └── scripts/        <-- Stow will place the "common" link here
 ```
@@ -39,16 +39,16 @@ Follow these steps to link the central scripts into the `todo` service.
 - Share the Stow storage directory with the `todo` service as the target:
   ```bash
   cd stow-central
-  stow --target=../services/todo common
+  stow --target=../modules/todo common
   ```
 - Verify the Symlinks
   ```bash
-  > ls -l ../services/todo/scripts/
+  > ls -l ../modules/todo/scripts/
   # common ## symlink if this directory does not pre-exist otherwise it's a symlink (better)
   # todo-start.sh
   #…
 
-  > ls -l ../services/todo/scripts/common
+  > ls -l ../modules/todo/scripts/common
   # db-wait.sh -> ../../../stow-central/common/scripts/common/db-wait.sh
   #…
 ```
@@ -64,7 +64,7 @@ You can automate the "stowing" process so it happens automatically for all servi
 description = "Sync central scripts to all service modules"
 run = """
 [ -e "$dir/scripts/" ] || mkdir -p "$dir/scripts/"
-for dir in services/*/; do
+for dir in modules/*/; do
   # -D unlinks first to prevent conflicts, then stow relinks
   stow --dir=stow-central --target="$dir" -D common
   stow --dir=stow-central --target="$dir" common
@@ -79,7 +79,7 @@ poc/
 │       ├── .golangci-lint.yaml  <-- PLACE IT HERE
 │       └── scripts/
 │           └── shared/
-└── services/
+└── modules/
     └── todo/               <-- The Target
         ├── .golangci-lint.yaml  <-- SYMLINK created here
         └── scripts/

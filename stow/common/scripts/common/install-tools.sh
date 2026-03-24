@@ -107,6 +107,14 @@ if [ "$APP_ENV" = "development" ]; then
         st.nothing
     fi
 
+    st.doing "Installing gofumpt Formatting"
+    if $UPDATE || ! command -v gofumpt >/dev/null 2>&1; then
+        st.do go install mvdan.cc/gofumpt@latest
+        st.done
+    else
+        st.nothing
+    fi
+
     st.doing "Installing  Debugger"
     if $UPDATE || ! command -v dlv >/dev/null 2>&1; then
         st.do go install github.com/go-delve/delve/cmd/dlv@latest

@@ -20,7 +20,7 @@ var errorColor = color.New(color.FgRed)
 
 func main() {
 	// Discover all services
-	services, err := orchestrator.DiscoverServices("./services", archTaskName)
+	services, err := orchestrator.DiscoverServices("./modules", archTaskName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error discovering services: %v\n", err)
 		os.Exit(1)

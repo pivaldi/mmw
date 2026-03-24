@@ -30,7 +30,7 @@ Run for a specific service:
 Run architecture tests for the current service:
 
 ```bash
-cd poc/services/todo
+cd poc/modules/todo
 ../../tools/arch-test/arch-test.sh
 ```
 
@@ -96,7 +96,7 @@ When creating a new Go service:
 
 1. **Copy the arch-go template:**
    ```bash
-   cp poc/tools/arch-test/.arch-go.yml.template poc/services/your-service/.arch-go.yml
+   cp poc/tools/arch-test/.arch-go.yml.template poc/modules/your-service/.arch-go.yml
    ```
 
 2. **Customize for your service (optional):**
@@ -106,7 +106,7 @@ When creating a new Go service:
 
 3. **Create the required directory structure:**
    ```bash
-   cd poc/services/your-service
+   cd poc/modules/your-service
    mkdir -p domain application adapters/primary adapters/secondary infrastructure
    ```
 
@@ -133,7 +133,7 @@ arch-test:
     - ./poc/tools/arch-test/arch-test.sh
   rules:
     - changes:
-        - poc/services/**/*.go
+        - poc/modules/**/*.go
 ```
 
 ### Jenkins

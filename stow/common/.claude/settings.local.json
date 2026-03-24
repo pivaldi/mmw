@@ -19,7 +19,10 @@
       "Bash(~/go/bin/buf generate:*)",
       "Bash(PATH=\"$HOME/go/bin:$PATH\" buf generate:*)",
       "Bash(find:*)",
-      "Bash(/usr/local/go/bin/go build:*)"
+      "Bash(/usr/local/go/bin/go build:*)",
+      "Bash(git:*)",
+      "Bash(go list:*)",
+      "Bash(go build:*)"
     ]
   }
 }

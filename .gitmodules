@@ -1,5 +1,5 @@
-[submodule "services/todo"]
-	path = services/todo
+[submodule "modules/todo"]
+	path = modules/todo
 	url = https://github.com/pivaldi/mmw-todo.git
 [submodule "libs/ogl"]
 	path = libs/ogl
@@ -7,11 +7,11 @@
 [submodule "stow/common/scripts/common/libs/bash-stepper"]
 	path = scripts/libs/bash-stepper
 	url = https://github.com/pivaldi/bash-stepper
-[submodule "services/notifications"]
-	path = services/notifications
+[submodule "modules/notifications"]
+	path = modules/notifications
 	url = https://github.com/pivaldi/mmw-notifications.git
-[submodule "services/auth"]
-	path = services/auth
+[submodule "modules/auth"]
+	path = modules/auth
 	url = https://github.com/pivaldi/mmw-auth.git
 [submodule "contracts"]
 	path = contracts

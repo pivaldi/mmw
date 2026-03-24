@@ -72,7 +72,7 @@ func (v *ContractPurityValidator) collectServiceModules() (map[string]bool, erro
 		return nil, err
 	}
 
-	absServicesDir, _ := filepath.Abs(filepath.Join(v.RepoRoot, "services"))
+	absServicesDir, _ := filepath.Abs(filepath.Join(v.RepoRoot, "modules"))
 	forbidden := map[string]bool{}
 
 	for _, line := range strings.Split(string(content), "\n") {

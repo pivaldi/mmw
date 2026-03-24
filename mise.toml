@@ -69,7 +69,7 @@ run = """
   st.done
 
   st.h1 'Stowing Services'
-  for dir in services/*/; do
+  for dir in modules/*/; do
   st.doing "Creating ${dir}scripts/"
   [ -e "${dir}scripts/" ] && st.nothing || {
   st.do mkdir -p "${dir}scripts/"
@@ -125,8 +125,8 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 
-  cd {{config_root}}/services/todo/ && mise run db:migrate:up
-  cd {{config_root}}/services/auth/ && mise run db:migrate:up
+  cd {{config_root}}/modules/todo/ && mise run db:migrate:up
+  cd {{config_root}}/modules/auth/ && mise run db:migrate:up
 """
 
 [tasks."db:connect"]
@@ -153,49 +153,49 @@ go build -o ${BUILD_DIR}/${BINARY_NAME} -v ${BINARY_PATH}
 [tasks."todo:test"]
 description = "Run all tests in todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run test
 """
 
 [tasks."todo:test:coverage"]
 description = "Run tests with coverage in todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run test:coverage
   """
 
 [tasks."todo:test:integration"]
 description = "Run integration tests in todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run test:integration
   """
 
 [tasks."todo:build"]
 description = "Build todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run build
   """
 
 [tasks."todo:run"]
 description = "Run todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run run
   """
 
 [tasks."todo:generate"]
 description = "Generate code for todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run generate
   """
 
 [tasks."todo:lint"]
 description = "Run linter on todo service"
 run = """
-  cd services/todo
+  cd modules/todo
   mise run lint
   """
 
@@ -232,17 +232,17 @@ run = """
 
   echo ""
   echo "Linting todo service..."
-  cd services/todo && golangci-lint run ./...
+  cd modules/todo && golangci-lint run ./...
   cd {{config_root}}
 
   echo ""
   echo "Linting auth service..."
-  cd services/auth && golangci-lint run ./...
+  cd modules/auth && golangci-lint run ./...
   cd {{config_root}}
 
    echo ""
   echo "Linting notifications service..."
-  cd services/notifications/ && golangci-lint run ./...
+  cd modules/notifications/ && golangci-lint run ./...
   cd {{config_root}}
  """
 
@@ -299,7 +299,7 @@ run = """
   echo 'TO BE FIXED, entrypoint is wrong'
   exit 1
   echo "Checking for circular dependencies..."
-  dep-tree entrypoint ./services/todo/cmd/todo/main.go --check-cycles
+  dep-tree entrypoint ./modules/todo/cmd/todo/main.go --check-cycles
   """
 
 [tasks.generate]
@@ -314,7 +314,7 @@ run = """
 
   st.h1 "Generate code for all projects"
 
-  for dir in services/*/; do
+  for dir in modules/*/; do
   st.doing "Generating code for ${dir}"
   cd "{{config_root}}/$dir" || exit 1
   mise run generate
@@ -333,7 +333,7 @@ run = """
 
   st.h1 "Clean all build artifacts"
 
-  for dir in services/*/; do
+  for dir in modules/*/; do
   st.doing "Cleaning ${dir}"
   cd "$dir" || exit 1
   st.do mise run clean
@@ -372,7 +372,7 @@ run = """
   cd ../..
 
   echo "Tidying todo service..."
-  cd services/todo && go mod tidy
+  cd modules/todo && go mod tidy
   cd ../..
 
   echo "Syncing workspace..."
