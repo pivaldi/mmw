@@ -72,11 +72,12 @@ echo "$STAGED_FILES" | while read -r file; do
 done
 st.done
 
-st.h2 "Go linting if any Go files changed"
+st.h2 "Go linting/formating if any Go files changed"
 if echo "$STAGED_FILES" | grep -q '\.go$'; then
     st.doing "Running golangci-lint..."
     st.do golangci-lint config verify
     st.do golangci-lint run --fix
+    st.do gofumpt -l -w .
     st.done
     st.doing 'Re-add any files that were fixed'
     echo "$STAGED_FILES" | grep '\.go$' | xargs -r git add

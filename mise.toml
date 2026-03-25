@@ -11,10 +11,13 @@ golangci-lint = "latest"
 zellij = "latest"
 buf = "latest"
 
-[env]
+[vars]
 BINARY_NAME = "mmw"
 BINARY_PATH = "./cmd/mmw"
 BUILD_DIR = "bin"
+COMPILE_OPTIONS="-tags no_clickhouse,no_mysql,no_mssql"
+
+[env]
 _.file = ".envrc"  # Load .envrc file if it exists
 APP_ENV = { required = true }
 APP_NAME = { required = true }
@@ -141,7 +144,7 @@ run = "docker exec -it todoapp-postgres psql -U postgres -d mmw"
 [tasks.run]
 description = "Run the application"
 # depends = ["generate"] # See https://buf.build/docs/bsr/rate-limits/ for details about BSR rate limiting.
-run = "go run ${BINARY_PATH}/main.go"
+run = "go run {{vars.COMPILE_OPTIONS}} {{vars.BINARY_PATH}}/main.go"
 
 [tasks."run:dev"]
 description = "Run with hot reload (requires air)"
@@ -149,10 +152,10 @@ run = "go tool air"
 
 [tasks.build]
 description = "Build the application binary"
-depends = ["generate"]
+# depends = ["generate"]
 run = """
-[ -e ${BUILD_DIR} ] || mkdir -p ${BUILD_DIR}
-go build -o ${BUILD_DIR}/${BINARY_NAME} -v ${BINARY_PATH}
+[ -e {{vars.BUILD_DIR}} ] || mkdir -p {{vars.BUILD_DIR}}
+go build {{vars.COMPILE_OPTIONS}} -o {{vars.BUILD_DIR}}/{{vars.BINARY_NAME}} -v {{vars.BINARY_PATH}}
 """
 
 [tasks."todo:test"]
@@ -295,7 +298,7 @@ run = """
 description = "Validate architectural boundaries across entire monorepo"
 run = """
   cd {{config_root}} || exit 1
-  go run ./tools/arch-test
+  go run {{vars.COMPILE_OPTIONS}} ./tools/arch-test
   """
 
 [tasks."deps:circular"]
