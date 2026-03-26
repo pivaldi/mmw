@@ -310,6 +310,33 @@ run = """
   dep-tree entrypoint ./modules/todo/cmd/todo/main.go --check-cycles
   """
 
+[tasks.deps]
+description = "Analyze dependencies with goda"
+run = """
+  echo "Analyzing workspace dependencies..."
+  goda graph "./..." | dot -Tsvg -o graph.svg
+  xdg-open graph.svg
+"""
+
+[tasks."deps:tree"]
+description = "Show dependency tree"
+run = """
+echo "Dependency tree for workspace:"
+goda tree "./..."
+"""
+
+[tasks."deps:list"]
+description = "List all dependencies"
+run = """
+echo "All dependencies in workspace:"
+goda list "./..."
+"""
+
+[tasks."deps:verify"]
+description = "Verify Go dependencies"
+run = "go mod verify"
+
+
 [tasks.generate]
 description = "Generate code for all projects"
 run = """

@@ -10,10 +10,10 @@ tool (
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/jackc/pgx/v5 v5.8.0
-	github.com/ovya/ogl v0.0.0-20260321231833-7dcb9ea09c73
-	github.com/pivaldi/mmw-auth v0.0.0-20260321170503-9a5c20132c89
-	github.com/pivaldi/mmw-contracts v0.0.0-20260321163605-264690edbe4e
-	github.com/pivaldi/mmw-notifications v0.0.0-20260321175208-fad54377c770
+	github.com/ovya/ogl v0.0.0-20260324224052-968c2f821ca3
+	github.com/pivaldi/mmw-auth v0.0.0-20260326101207-71f2bc49ec24
+	github.com/pivaldi/mmw-contracts v0.0.0-20260323180942-26dc4fc984be
+	github.com/pivaldi/mmw-notifications v0.0.0-20260326101319-caf95dfd2c9e
 	github.com/pivaldi/mmw-todo v0.0.0-20260321181339-5d9491538aa7
 	github.com/rotisserie/eris v0.5.4
 )
@@ -22,6 +22,7 @@ require (
 	connectrpc.com/connect v1.19.1 // indirect
 	connectrpc.com/cors v0.1.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
+	github.com/RocketChat/Rocket.Chat.Go.SDK v0.0.0-20250718055228-285ecf400b48 // indirect
 	github.com/air-verse/air v1.64.5 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
@@ -44,10 +45,10 @@ require (
 	github.com/lmittmann/tint v1.1.3 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/nikoksr/notify v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
