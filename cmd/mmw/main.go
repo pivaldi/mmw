@@ -17,10 +17,11 @@ import (
 	oglevents "github.com/ovya/ogl/platform/events"
 	oglslog "github.com/ovya/ogl/slog"
 	auth "github.com/pivaldi/mmw-auth"
-	defauth "github.com/pivaldi/mmw-contracts/definitions/auth"
+	authdef "github.com/pivaldi/mmw-contracts/definitions/auth"
+	tododef "github.com/pivaldi/mmw-contracts/definitions/todo"
 	notifications "github.com/pivaldi/mmw-notifications"
 	todo "github.com/pivaldi/mmw-todo"
-	mmwConfig "github.com/pivaldi/mmw/config"
+	mmwconfig "github.com/pivaldi/mmw/config"
 	"github.com/rotisserie/eris"
 )
 
@@ -43,10 +44,10 @@ func main() {
 		os.Exit(exitCode)
 	}()
 
-	config, err := mmwConfig.Load(ctx)
+	config, err := mmwconfig.Load(ctx)
 	if err != nil {
 		exitCode = 1
-		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
 
 		return
 	}
@@ -54,7 +55,7 @@ func main() {
 	logger, err := oglslog.New(oglslog.HandlerText, config.LogLevel.SlogLevel())
 	if err != nil {
 		exitCode = 1
-		fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
 
 		return
 	}
@@ -85,7 +86,7 @@ func main() {
 		DBPool:   dbPool,
 		EventBus: systemBus,
 		Logger:   logger.With("module", todo.ModuleName),
-		AuthSvc:  defauth.NewInprocClient(authModule),
+		AuthSvc:  authdef.NewInprocClient(authModule),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize todo module", err)
@@ -93,8 +94,8 @@ func main() {
 	}
 
 	// Create the notifications module
-	notifEvents := todo.NotifyEvents
-	notifEvents = append(notifEvents, auth.NotifyEvents...)
+	notifEvents := tododef.AllEvents
+	notifEvents = append(notifEvents, authdef.AllEvents...)
 	notifInfra := notifications.Infrastructure{
 		Subscriber:  rawBus,
 		Logger:      logger.With("module", notifications.ModuleName),
