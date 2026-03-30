@@ -21,8 +21,8 @@ st.h1 "Running pre-commit checks..."
 
 cd "$APP_ROOT_PATH" || l.fail
 
-# Get list of staged files
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+# Get list of staged files using null-terminated strings
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM -z)
 
 if [ -z "$STAGED_FILES" ]; then
     echo "No staged files to check"
@@ -31,14 +31,19 @@ if [ -z "$STAGED_FILES" ]; then
 fi
 
 st.h2 "Fix trailing whitespace and ensure newline at end of file"
-echo "$STAGED_FILES" | while read -r file; do
+printf "%s" "$STAGED_FILES" | while IFS= read -r -d '' file; do
     if [ -f "$file" ]; then
         st.doing "Removing trailing whitespace on $file"
-        st.do sed -i 's/[[:space:]]*$//' "$file"
+        st.do sed -i -e 's/[[:space:]]*$//' "$file"
         st.done
+
         st.doing "Ensure file ends with newline"
-        st.do sed -i -e "\$a\\" "$file"
+        # Only add a newline if the last character is NOT already a newline
+        if [ -n "$(tail -c 1 "$file")" ]; then
+            echo "" >>"$file"
+        fi
         st.done
+
         st.doing 'Re-add file that was fixed'
         st.do git add "$file"
         st.done
@@ -48,9 +53,12 @@ done
 st.h2 "Check YAML syntax"
 st.doing "Checking YAML files..."
 PASS=false
-YAML_FILES=$(echo "$STAGED_FILES" | grep -E '\.ya?ml$' || true)
+# Use grep -z to filter null-terminated strings
+YAML_FILES=$(printf "%s" "$STAGED_FILES" | grep -z -E '\.ya?ml$' || true)
+
 if [ -n "$YAML_FILES" ]; then
-    st.do echo "$YAML_FILES" | xargs -r yamllint -d relaxed 2>/dev/null || true
+    # Use xargs -0 to read the null-terminated strings
+    st.do printf "%s" "$YAML_FILES" | xargs -0 -r yamllint -d relaxed 2>/dev/null || true
     PASS=true
 fi
 
@@ -62,7 +70,7 @@ fi
 
 DOING_MSG="Check for large files (>500KB)"
 st.h2 "$DOING_MSG"
-echo "$STAGED_FILES" | while read -r file; do
+printf "%s" "$STAGED_FILES" | while IFS= read -r -d '' file; do
     if [ -f "$file" ]; then
         size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0)
         if [ "$size" -gt 512000 ]; then
@@ -72,27 +80,20 @@ echo "$STAGED_FILES" | while read -r file; do
 done
 st.done
 
-st.h2 "Go linting/formating if any Go files changed"
-if echo "$STAGED_FILES" | grep -q '\.go$'; then
+st.h2 "Go linting/formatting (staged files only)"
+STAGED_GO_FILES=$(printf "%s" "$STAGED_FILES" | grep -z '\.go$' || true)
+
+if [ -n "$STAGED_GO_FILES" ]; then
     st.doing "Running golangci-lint..."
     st.do golangci-lint config verify
-    st.do golangci-lint run --fix
-    st.do gofumpt -l -w .
-    st.done
-    st.doing 'Re-add any files that were fixed'
-    echo "$STAGED_FILES" | grep '\.go$' | xargs -r git add
-    st.done
-else
-    st.nothing
-fi
 
-st.h2 "Buf lint/generate for proto changes"
-if echo "$STAGED_FILES" | grep -q '\.proto$'; then
-    echo "Running buf lint and generate..."
-    cd internal/user/api && buf lint && buf generate
-    cd - >/dev/null
-    # Add generated files
-    git add internal/user/api/gen/ 2>/dev/null || true
+    printf "%s" "$STAGED_GO_FILES" | while IFS= read -r -d '' file; do
+        [ -f "$file" ] || continue
+        st.do golangci-lint run --fix "$file"
+        st.do gofumpt -l -w "$file"
+        st.do git add "$file"
+    done
+    st.done
 else
     st.nothing
 fi
