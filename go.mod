@@ -9,8 +9,8 @@ tool (
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.1
-	github.com/jackc/pgx/v5 v5.8.0
-	github.com/ovya/ogl v0.0.0-20260324224052-968c2f821ca3
+	github.com/jackc/pgx/v5 v5.9.1
+	github.com/piprim/mmw v0.0.0-20260330215535-bc0f2aacc35b
 	github.com/pivaldi/mmw-auth v0.0.0-20260326101207-71f2bc49ec24
 	github.com/pivaldi/mmw-contracts v0.0.0-20260323180942-26dc4fc984be
 	github.com/pivaldi/mmw-notifications v0.0.0-20260326101319-caf95dfd2c9e

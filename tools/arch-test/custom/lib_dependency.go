@@ -15,11 +15,11 @@ type LibDependencyValidator struct {
 	RepoRoot string
 }
 
-func (v *LibDependencyValidator) Name() string {
+func (*LibDependencyValidator) Name() string {
 	return "lib-dependency-purity"
 }
 
-func (v *LibDependencyValidator) Description() string {
+func (*LibDependencyValidator) Description() string {
 	return "libs/ packages can only import stdlib, external deps, or other libs"
 }
 
@@ -34,7 +34,7 @@ func (v *LibDependencyValidator) Check() error {
 	}
 
 	// Collect the module names of all libs (imports from these are allowed)
-	libModules := map[string]bool{}
+	libModules := make(map[string]bool)
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue

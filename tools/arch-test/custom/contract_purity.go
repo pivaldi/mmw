@@ -73,7 +73,7 @@ func (v *ContractPurityValidator) collectServiceModules() (map[string]bool, erro
 	}
 
 	absServicesDir, _ := filepath.Abs(filepath.Join(v.RepoRoot, "modules"))
-	forbidden := map[string]bool{}
+	forbidden := make(map[string]bool)
 
 	for _, line := range strings.Split(string(content), "\n") {
 		line = strings.TrimSpace(line)

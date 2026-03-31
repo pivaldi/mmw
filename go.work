@@ -3,6 +3,7 @@ go 1.26.1
 use (
 	.
 	./contracts
+	./libs/mmw
 	./libs/ogl
 	./modules/auth
 	./modules/notifications

@@ -16,3 +16,6 @@
 [submodule "contracts"]
 	path = contracts
 	url = https://github.com/pivaldi/mmw-contracts.git
+[submodule "libs/mmw"]
+	path = libs/mmw
+	url = https://github.com/piprim/mmw.git

@@ -12,10 +12,10 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/ovya/ogl/platform"
-	oglcore "github.com/ovya/ogl/platform/core"
-	oglevents "github.com/ovya/ogl/platform/events"
-	oglslog "github.com/ovya/ogl/slog"
+	"github.com/piprim/mmw/pkg/platform"
+	pfcore "github.com/piprim/mmw/pkg/platform/core"
+	pfevents "github.com/piprim/mmw/pkg/platform/events"
+	pfslog "github.com/piprim/mmw/pkg/platform/slog"
 	auth "github.com/pivaldi/mmw-auth"
 	authdef "github.com/pivaldi/mmw-contracts/definitions/auth"
 	tododef "github.com/pivaldi/mmw-contracts/definitions/todo"
@@ -52,7 +52,7 @@ func main() {
 		return
 	}
 
-	logger, err := oglslog.New(oglslog.HandlerText, config.LogLevel.SlogLevel())
+	logger, err := pfslog.New(pfslog.HandlerText, config.LogLevel.SlogLevel())
 	if err != nil {
 		exitCode = 1
 		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
@@ -68,7 +68,7 @@ func main() {
 
 	rawBus := getRawbus(logger)
 	defer rawBus.Close()
-	systemBus := oglevents.NewWatermillBus(rawBus)
+	systemBus := pfevents.NewWatermillBus(rawBus)
 
 	// Create authModule first, todo depends on it.
 	authModule, err := auth.New(auth.Infrastructure{
@@ -110,7 +110,7 @@ func main() {
 
 	// Platform startup
 	logger.Info("Platform startup…")
-	modules := []oglcore.Module{
+	modules := []pfcore.Module{
 		todoModule,
 		authModule,
 		notifModule,
