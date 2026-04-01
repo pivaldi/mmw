@@ -73,9 +73,11 @@ run = """
   st.do command cp -f -- scripts/libs/bash-stepper/st.bash stow/common/scripts/common/libs/
   st.done
 
-  st.doing 'Copying .golangci.yml to ogl lib'
-  st.do command cp -f -- .golangci.yml libs/ogl/
-  st.done
+  for lib in "ogl" "mmw"; do
+    st.doing "Copying .golangci.yml to $lib lib"
+    st.do command cp -f -- .golangci.yml "libs/$lib/"
+    st.done
+  done
 
   st.h1 'Stowing Services'
   for dir in modules/*/; do
@@ -278,37 +280,39 @@ run = """
   mise run test:coverage
   """
 
-[tasks."test:all"]
-depends = ["todo:test", "ogl:test"]
+[tasks."mmw:test"]
+description = "Run tests in mmw library"
+run = """
+  cd libs/mmw
+  mise run test
+  """
+
+[tasks."mmw:test:coverage"]
+description = "Run tests with coverage in mmw library"
+run = """
+  cd libs/mmw
+  mise run test:coverage
+  """
+
+[tasks."test"]
+depends = ["todo:test", "ogl:test", "mmw:test"]
 description = "Run all tests in the monorepo"
 run = "true"
 
 [tasks.lint]
 description = "Run linter on all projects"
 run = """
-  echo "Linting ogl library..."
-  cd libs/ogl && golangci-lint run ./...
-  cd {{config_root}}
+#!/usr/bin/env bash
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
 
-  echo ""
-  echo "Linting contracts"
-  cd contracts && golangci-lint run ./...
-  cd {{config_root}}
+  st.quiet
 
-  echo ""
-  echo "Linting todo service..."
-  cd modules/todo && golangci-lint run ./...
-  cd {{config_root}}
-
-  echo ""
-  echo "Linting auth service..."
-  cd modules/auth && golangci-lint run ./...
-  cd {{config_root}}
-
-   echo ""
-  echo "Linting notifications service..."
-  cd modules/notifications/ && golangci-lint run ./...
-  cd {{config_root}}
+  for dir in "libs/ogl" "libs/mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
+    st.h1 "Linting ${dir}…"
+    cd "{{config_root}}/$dir" && golangci-lint run ./...
+    echo
+  done
  """
 
 [tasks."lint:verify-config"]
@@ -332,7 +336,7 @@ run = """
 [tasks."arch:graph"]
 description = "Show graph architectural dependcies for this service"
 run = """
-goda graph \
+goda graph -cluster \
   "shared(github.com/pivaldi/mmw/cmd/mmw:all, github.com/pivaldi/mmw/... + github.com/pivaldi/mmw-auth/... + github.com/pivaldi/mmw-todo/... + github.com/pivaldi/mmw-notifications/... + github.com/pivaldi/mmw-contracts/...) - github.com/pivaldi/mmw-auth/cmd/migration  - github.com/pivaldi/mmw-todo/cmd/migration  - github.com/pivaldi/mmw-auth/internal/infra/persistence/migrations/... - github.com/pivaldi/mmw-todo/internal/infra/persistence/migrations/...  - github.com/pivaldi/mmw-notifications/internal/infra/persistence/migrations/... - github.com/pivaldi/mmw-arch-test/..." \
   | dot -Tsvg -o graph.svg  &&  echo 'Generated graph: {{config_root}}/graph.svg'
 """
@@ -342,13 +346,6 @@ description = "Generate visual dependency tree with dep-tree"
 run = """
   echo "Generating dependency tree visualization..."
   dep-tree entrypoint ./**/*.go
-  """
-
-[tasks."arch:visualize:ogl"]
-description = "Generate dependency tree for ogl library"
-run = """
-  echo "Generating ogl library dependency tree..."
-  dep-tree entrypoint ./libs/ogl
   """
 
 [tasks."arch:check"]
@@ -431,18 +428,13 @@ run = """
   st.do mise run clean
   st.done
   done
-
-  st.doing "Cleaning ogl library…"
-  cd {{config_root}}/libs/ogl || exit 1
-  st.do mise run clean
-  st.done
   """
 
 [tasks.fmt]
 description = "Format all Go code"
 run = """
   echo "Formatting all Go code in workspace..."
-  go fmt ./...
+  gofumpt -l -w .
   """
 
 [tasks."workspace:status"]
@@ -459,16 +451,24 @@ run = """
 [tasks."workspace:tidy"]
 description = "Tidy all modules in workspace"
 run = """
-  echo "Tidying ogl library..."
-  cd libs/ogl && go mod tidy
-  cd ../..
+#!/usr/bin/env bash
+  set -euo pipefail
 
-  echo "Tidying todo service..."
-  cd modules/todo && go mod tidy
-  cd ../..
+  cd {{config_root}}
+  source scripts/libs/bash-stepper/st.bash
 
-  echo "Syncing workspace..."
-  go work sync
+  st.quiet
+
+  for dir in "libs/ogl" "libs/mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
+    st.h1 "Tidying ${dir}…"
+    cd "{{config_root}}/$dir"
+    st.do go mod tidy
+    st.done
+  done
+
+  st.h1 "Syncing workspace..."
+  st.do go work sync
+  st.done
   """
 
 [tasks."workspace:sync-module"]

@@ -5,9 +5,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
@@ -52,6 +55,10 @@ func main() {
 		return
 	}
 
+	if config.Environment.IsDev() {
+		go startPprofServer()
+	}
+
 	logger, err := pfslog.New(pfslog.HandlerText, config.LogLevel.SlogLevel())
 	if err != nil {
 		exitCode = 1
@@ -86,7 +93,7 @@ func main() {
 		DBPool:   dbPool,
 		EventBus: systemBus,
 		Logger:   logger.With("module", todo.ModuleName),
-		AuthSvc:  authdef.NewInprocClient(authModule),
+		AuthSvc:  authdef.NewInprocClient(authModule.Service()),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize todo module", err)
@@ -166,4 +173,26 @@ func maskDatabaseURL(url string) string {
 	}
 
 	return url[:10] + "***" + url[len(url)-10:]
+}
+
+func startPprofServer() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	err := func() error {
+		server := &http.Server{
+			Addr:        "localhost:6060",
+			ReadTimeout: time.Minute,
+			Handler:     mux,
+		}
+
+		return server.ListenAndServe()
+	}()
+	if err != nil {
+		panic(err)
+	}
 }
