@@ -294,6 +294,39 @@ run = """
   mise run test:coverage
   """
 
+[tasks."mmw:test:integration"]
+description = "Run integration tests in mmw library"
+run = """
+  cd libs/mmw
+  mise run test:integration
+"""
+
+[tasks."todo:test:contract"]
+description = "Run contract tests in todo module"
+run = """
+  cd modules/todo
+  mise run test:contract
+"""
+
+[tasks."test:contract"]
+depends = ["todo:test:contract"]
+description = "Run all contract tests in the monorepo"
+run = "true"
+
+[tasks."test:integration"]
+depends = ["todo:test:integration", "mmw:test:integration"]
+description = "Run all integration tests in the monorepo"
+run = "true"
+
+[tasks."test:system"]
+description = "Run system tests (requires Docker)"
+run = "go test -tags system -v -timeout 180s ./test/system/..."
+
+[tasks."test:all"]
+depends = ["test", "test:integration", "test:contract", "test:system"]
+description = "Run all tests in the monorepo"
+run = "true"
+
 [tasks."test"]
 depends = ["todo:test", "ogl:test", "mmw:test"]
 description = "Run all tests in the monorepo"
