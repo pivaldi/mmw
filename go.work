@@ -3,10 +3,9 @@ go 1.26.1
 use (
 	.
 	./contracts
-	./libs/mmw
 	./libs/ogl
+	./mmw
 	./modules/auth
 	./modules/notifications
 	./modules/todo
-	./tools/arch-test
 )

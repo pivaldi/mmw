@@ -73,9 +73,9 @@ run = """
   st.do command cp -f -- scripts/libs/bash-stepper/st.bash stow/common/scripts/common/libs/
   st.done
 
-  for lib in "ogl" "mmw"; do
-    st.doing "Copying .golangci.yml to $lib lib"
-    st.do command cp -f -- .golangci.yml "libs/$lib/"
+  for lib in "libs/ogl" "mmw"; do
+    st.doing "Copying .golangci.yml to $lib"
+    st.do command cp -f -- .golangci.yml "$lib/"
     st.done
   done
 
@@ -283,21 +283,21 @@ run = """
 [tasks."mmw:test"]
 description = "Run tests in mmw library"
 run = """
-  cd libs/mmw
+  cd mmw
   mise run test
   """
 
 [tasks."mmw:test:coverage"]
 description = "Run tests with coverage in mmw library"
 run = """
-  cd libs/mmw
+  cd mmw
   mise run test:coverage
   """
 
 [tasks."mmw:test:integration"]
 description = "Run integration tests in mmw library"
 run = """
-  cd libs/mmw
+  cd mmw
   mise run test:integration
 """
 
@@ -341,7 +341,7 @@ run = """
 
   st.quiet
 
-  for dir in "libs/ogl" "libs/mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
+  for dir in "libs/ogl" "mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
     st.h1 "Linting ${dir}…"
     cd "{{config_root}}/$dir" && golangci-lint run ./...
     echo
@@ -385,7 +385,7 @@ run = """
 description = "Validate architectural boundaries across entire monorepo"
 run = """
   cd {{config_root}} || exit 1
-  go run {{vars.COMPILE_OPTIONS}} ./tools/arch-test
+  go run {{vars.COMPILE_OPTIONS}} ./mmw/cmd/mmw-cli/main.go check arch
   """
 
 [tasks."deps:circular"]
@@ -492,7 +492,7 @@ run = """
 
   st.quiet
 
-  for dir in "libs/ogl" "libs/mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
+  for dir in "libs/ogl" "mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
     st.h1 "Tidying ${dir}…"
     cd "{{config_root}}/$dir"
     st.do go mod tidy
@@ -548,6 +548,14 @@ description = """Prepare a module to be detached from the Monolith:
 depends = ["workspace:sync-module libs/ogl", "workspace:sync-module contracts", "stow:un-stow"]
 run = "true"
 
+[tasks."module:new"]
+description = "Scaffold a new module"
+run = """
+  cd {{config_root}} || exit 1
+  go run {{vars.COMPILE_OPTIONS}} ./mmw/cmd/mmw-cli/main.go new module
+"""
+
+
 [tasks.help]
 description = "Display available tasks"
 run = """
@@ -559,3 +567,15 @@ run = """
 description = "Show tool versions and key environment info"
 run = "{{config_root}}/stow/common/scripts/common/doctor.sh"
 alias = "dr"
+
+[tasks."plop:test"]
+description = "Run unit tests for plop module"
+run = "cd modules/plop && mise run test"
+
+[tasks."plop:test:integration"]
+description = "Run integration tests for plop module"
+run = "cd modules/plop && mise run test:integration"
+
+[tasks."plop:test:contract"]
+description = "Run contract tests for plop module"
+run = "cd modules/plop && mise run test:contract"
