@@ -148,7 +148,6 @@ run = "docker exec -it todoapp-postgres psql -U postgres -d mmw"
 
 [tasks.run]
 description = "Run the application"
-# depends = ["generate"] # See https://buf.build/docs/bsr/rate-limits/ for details about BSR rate limiting.
 run = "go run {{vars.COMPILE_OPTIONS}} {{vars.BINARY_PATH}}/main.go"
 
 [tasks."run:dev"]
@@ -157,7 +156,6 @@ run = "go tool air"
 
 [tasks.build]
 description = "Build the application binary"
-# depends = ["generate"]
 run = """
 [ -e {{vars.BUILD_DIR}} ] || mkdir -p {{vars.BUILD_DIR}}
 go build {{vars.COMPILE_OPTIONS}} -o {{vars.BUILD_DIR}}/{{vars.BINARY_NAME}} -v {{vars.BINARY_PATH}}
@@ -183,7 +181,7 @@ run = """
 
   st.doing 'Generating Proto'
   cd {{vars.CONTRACTS_DIR}}
-  st.do find . -name 'buf.gen.*.yaml' -exec buf generate --template {} \\;
+  st.do mise run generate
   st.done
 """
 

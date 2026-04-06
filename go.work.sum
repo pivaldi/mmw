@@ -495,6 +495,7 @@ github.com/pierrec/lz4/v4 v4.1.25 h1:kocOqRffaIbU5djlIBr7Wh+cx82C0vtFb0fOurZHqD0
 github.com/pierrec/lz4/v4 v4.1.25/go.mod h1:EoQMVJgeeEOMsCqCzqFm2O0cJvljX2nGZjcRIPL34O4=
 github.com/pivaldi/mmw-contracts v0.0.0-20260321163605-264690edbe4e/go.mod h1:BO34iOojlC3yTT3sn9FGnM4b9ldP96OfREOY4iZ0xc8=
 github.com/pivaldi/mmw-contracts/definitions/auth v0.0.0-20260321163605-264690edbe4e/go.mod h1:SDYs5uL8WQvo2zydjlNn7o9pp4pQrybFtpZGFYARLjk=
+github.com/pivaldi/mmw-contracts/definitions/todo v0.0.0-20260321163605-264690edbe4e h1:Tk9IkWvxPeB/O8jvHNwX6hlFQ+gBwewXL64H1UxTVCQ=
 github.com/pivaldi/mmw-contracts/definitions/todo v0.0.0-20260321163605-264690edbe4e/go.mod h1:gtPZBoRcIqTdzztJ+k34GVOjBgY1HO37wyV7bMosmSI=
 github.com/pjbgf/sha1cd v0.3.0/go.mod h1:nZ1rrWOcGJ5uZgEEVL1VUM9iRQiZvWdbZjkKyFzPPsI=
 github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c h1:+mdjkGKdHQG3305AYmdv1U2eRNDiU2ErMBj1gwrq8eQ=
