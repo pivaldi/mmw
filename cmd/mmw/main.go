@@ -93,7 +93,7 @@ func main() {
 		DBPool:   dbPool,
 		EventBus: systemBus,
 		Logger:   logger.With("module", todo.ModuleName),
-		AuthSvc:  authdef.NewInprocClient(authModule.Service()),
+		AuthSvc:  authdef.NewInprocClient(authModule.CombinedService()),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize todo module", err)
@@ -101,8 +101,8 @@ func main() {
 	}
 
 	// Create the notifications module
-	notifEvents := tododef.AllEvents
-	notifEvents = append(notifEvents, authdef.AllEvents...)
+	notifEvents := tododef.Topics
+	notifEvents = append(notifEvents, authdef.Topics...)
 	notifInfra := notifications.Infrastructure{
 		Subscriber:  rawBus,
 		Logger:      logger.With("module", notifications.ModuleName),

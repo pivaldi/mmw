@@ -186,7 +186,7 @@ run = """
 """
 
 [tasks."buf:lint"]
-description = "Lint protobuf files (Todo API only)"
+description = "Lint protobuf files"
 run = """
 #!/usr/bin/env bash
   set -euo pipefail
@@ -198,21 +198,21 @@ run = """
 
   cd {{vars.CONTRACTS_DIR}}
   st.doing "Linting proto file"
-  st.do buf lint proto
+  st.do mise lint
 """
 
 [tasks."buf:format"]
-description = "Format protobuf files (Todo API only)"
+description = "Format protobuf files"
 run = """
   cd {{vars.CONTRACTS_DIR}}
-  find ./proto/ -name '*.proto' -exec buf format -w {} \\;
+  mise format
 """
 
 [tasks."buf:breaking"]
-description = "Check for breaking changes in protobuf (Todo API only)"
+description = "Check for breaking changes in protobuf"
 run = """
 cd {{vars.CONTRACTS_DIR}}
-buf breaking --against '.git#branch=master' proto/*
+mise breaking
 """
 
 [tasks."todo:test"]

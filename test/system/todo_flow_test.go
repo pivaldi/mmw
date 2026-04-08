@@ -104,7 +104,7 @@ func TestMain(m *testing.M) {
 		DBPool:   pool,
 		EventBus: systemBus,
 		Logger:   logger.With("module", todo.ModuleName),
-		AuthSvc:  authdef.NewInprocClient(authModule.Service()),
+		AuthSvc:  authdef.NewInprocClient(authModule.CombinedService()),
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create todo module: %v\n", err)
@@ -119,10 +119,9 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func newAuthClient() authv1connect.AuthServiceClient {
-	return authv1connect.NewAuthServiceClient(http.DefaultClient, authServer.URL)
+func newAuthPublicClient() authv1connect.AuthPublicServiceClient {
+	return authv1connect.NewAuthPublicServiceClient(http.DefaultClient, authServer.URL)
 }
-
 func newTodoClient(token string) todov1connect.TodoServiceClient {
 	return todov1connect.NewTodoServiceClient(
 		http.DefaultClient,
@@ -143,7 +142,7 @@ func bearerInterceptor(token string) connect.UnaryInterceptorFunc {
 func registerAndLogin(t *testing.T, login, password string) string {
 	t.Helper()
 	ctx := context.Background()
-	ac := newAuthClient()
+	ac := newAuthPublicClient()
 
 	_, err := ac.Register(ctx, connect.NewRequest(&authv1.RegisterRequest{
 		Login:    login,
