@@ -12,6 +12,7 @@ zellij = "latest"
 buf = "latest"
 
 [vars]
+GOTESTSUM_OPTIONS = "--format testdox"
 CONTRACTS_DIR = "{{config_root}}/contracts"
 BINARY_NAME = "mmw"
 BINARY_PATH = "./cmd/mmw"
@@ -215,120 +216,77 @@ cd {{vars.CONTRACTS_DIR}}
 mise breaking
 """
 
-[tasks."todo:test"]
-description = "Run all tests in todo service"
-run = """
-  cd modules/todo
-  mise run test
-"""
-
-[tasks."todo:test:coverage"]
-description = "Run tests with coverage in todo service"
-run = """
-  cd modules/todo
-  mise run test:coverage
-  """
-
-[tasks."todo:test:integration"]
-description = "Run integration tests in todo service"
-run = """
-  cd modules/todo
-  mise run test:integration
-  """
-
-[tasks."todo:build"]
-description = "Build todo service"
-run = """
-  cd modules/todo
-  mise run build
-  """
-
-[tasks."todo:run"]
-description = "Run todo service"
-run = """
-  cd modules/todo
-  mise run run
-  """
-
-[tasks."todo:generate"]
-description = "Generate code for todo service"
-run = """
-  cd modules/todo
-  mise run generate
-  """
-
-[tasks."todo:lint"]
-description = "Run linter on todo service"
-run = """
-  cd modules/todo
-  mise run lint
-  """
-
-[tasks."ogl:test"]
-description = "Run tests in ogl library"
-run = """
-  cd libs/ogl
-  mise run test
-  """
-
-[tasks."ogl:test:coverage"]
-description = "Run tests with coverage in ogl library"
-run = """
-  cd libs/ogl
-  mise run test:coverage
-  """
-
-[tasks."mmw:test"]
-description = "Run tests in mmw library"
-run = """
-  cd mmw
-  mise run test
-  """
-
-[tasks."mmw:test:coverage"]
-description = "Run tests with coverage in mmw library"
-run = """
-  cd mmw
-  mise run test:coverage
-  """
-
-[tasks."mmw:test:integration"]
-description = "Run integration tests in mmw library"
-run = """
-  cd mmw
-  mise run test:integration
-"""
-
-[tasks."todo:test:contract"]
-description = "Run contract tests in todo module"
-run = """
-  cd modules/todo
-  mise run test:contract
-"""
-
 [tasks."test:contract"]
-depends = ["todo:test:contract"]
 description = "Run all contract tests in the monorepo"
-run = "true"
+run = """
+#!/usr/bin/env bash
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.quiet
+
+  for dir in "modules/todo" "modules/auth" "modules/notifications"; do
+    st.h1 "Test contract ${dir}…"
+    cd "{{config_root}}/$dir"
+    if grep -q 'test:contract' mise.toml; then
+      mise run test:contract
+      echo
+    else
+      st.warn 'No "test:contract" entry found in mise.toml'
+    fi
+  done
+ """
 
 [tasks."test:integration"]
-depends = ["todo:test:integration", "mmw:test:integration"]
 description = "Run all integration tests in the monorepo"
-run = "true"
+run = """
+#!/usr/bin/env bash
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.quiet
+
+  for dir in "modules/todo" "modules/auth" "modules/notifications"; do
+    st.h1 "Test contract ${dir}…"
+    cd "{{config_root}}/$dir"
+    if grep -q 'test:integration' mise.toml; then
+      mise run test:integration
+      echo
+    else
+      st.warn 'No "test:integration" entry found in mise.toml'
+    fi
+  done
+ """
 
 [tasks."test:system"]
 description = "Run system tests (requires Docker)"
-run = "go test -tags system -v -timeout 180s ./test/system/..."
+run = "go tool gotestsum {{vars.GOTESTSUM_OPTIONS}} -- -v -tags system -timeout 180s ./test/system/..."
 
 [tasks."test:all"]
-depends = ["test", "test:integration", "test:contract", "test:system"]
+depends = ["test", "test:contract", "test:system"]
 description = "Run all tests in the monorepo"
 run = "true"
 
 [tasks."test"]
-depends = ["todo:test", "ogl:test", "mmw:test"]
-description = "Run all tests in the monorepo"
-run = "true"
+description = "Run all unit tests in the monorepo"
+run = """
+#!/usr/bin/env bash
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+
+  st.quiet
+
+  for dir in "libs/ogl" "mmw" "modules/todo" "modules/auth" "modules/notifications"; do
+    st.h1 "Test contract ${dir}…"
+    cd "{{config_root}}/$dir"
+    if grep -q 'tasks.test' mise.toml; then
+      mise run test
+      echo
+    else
+      st.warn 'No "tasks.test" entry found in mise.toml'
+    fi
+  done
+ """
 
 [tasks.lint]
 description = "Run linter on all projects"
@@ -339,7 +297,7 @@ run = """
 
   st.quiet
 
-  for dir in "libs/ogl" "mmw" "contracts" "modules/todo" "modules/auth" "modules/notifications"; do
+  for dir in "libs/ogl" "mmw" "contracts" modules/*; do
     st.h1 "Linting ${dir}…"
     cd "{{config_root}}/$dir" && golangci-lint run ./...
     echo

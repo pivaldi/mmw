@@ -90,10 +90,11 @@ func main() {
 
 	// Create the todo module
 	todoModule, err := todo.New(todo.Infrastructure{
-		DBPool:   dbPool,
-		EventBus: systemBus,
-		Logger:   logger.With("module", todo.ModuleName),
-		AuthSvc:  authdef.NewInprocClient(authModule.CombinedService()),
+		DBPool:     dbPool,
+		EventBus:   systemBus,
+		Subscriber: rawBus,
+		Logger:     logger.With("module", todo.ModuleName),
+		AuthSvc:    authdef.NewInprocClient(authModule.CombinedService()),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize todo module", err)
