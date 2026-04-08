@@ -94,7 +94,7 @@ func main() {
 		EventBus:   systemBus,
 		Subscriber: rawBus,
 		Logger:     logger.With("module", todo.ModuleName),
-		AuthSvc:    authdef.NewInprocClient(authModule.CombinedService()),
+		AuthSvc:    authModule.PrivateService(),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize todo module", err)

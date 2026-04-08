@@ -21,7 +21,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	"connectrpc.com/connect"
-	authdef "github.com/pivaldi/mmw-contracts/definitions/auth"
 	authv1 "github.com/pivaldi/mmw-contracts/gen/go/auth/v1"
 	"github.com/pivaldi/mmw-contracts/gen/go/auth/v1/authv1connect"
 	todov1 "github.com/pivaldi/mmw-contracts/gen/go/todo/v1"
@@ -101,10 +100,11 @@ func TestMain(m *testing.M) {
 	}
 
 	todoModule, err := todo.New(todo.Infrastructure{
-		DBPool:   pool,
-		EventBus: systemBus,
-		Logger:   logger.With("module", todo.ModuleName),
-		AuthSvc:  authdef.NewInprocClient(authModule.CombinedService()),
+		DBPool:     pool,
+		EventBus:   systemBus,
+		Subscriber: rawBus,
+		Logger:     logger.With("module", todo.ModuleName),
+		AuthSvc:    authModule.PrivateService(),
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create todo module: %v\n", err)
