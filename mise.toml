@@ -417,24 +417,31 @@ run = """
   st.do mise run clean
   st.done
   done
+  true
   """
 
 [tasks.fmt]
 description = "Format all Go code"
 run = """
+#!/usr/bin/env bash
+  set -euo pipefail
   echo "Formatting all Go code in workspace..."
   gofumpt -l -w .
+  true
   """
 
 [tasks."workspace:status"]
 description = "Show workspace module status"
 run = """
+#!/usr/bin/env bash
+  set -euo pipefail
   echo "Workspace modules:"
   go work use
   echo ""
   echo "Module verification:"
   go work sync
   go mod verify
+  true
   """
 
 [tasks."workspace:tidy"]
@@ -458,6 +465,7 @@ run = """
   st.h1 "Syncing workspace..."
   st.do go work sync
   st.done
+  true
   """
 
 [tasks."workspace:sync-module"]
@@ -477,7 +485,7 @@ run = """
 
   st.h1 "Syncing ${MODULE} @ ${COMMIT:0:12}"
 
-  for dir in modules/*/ contracts/ libs/ogl/; do
+  for dir in . modules/*/ contracts/ libs/ogl/; do
     [ -f "${dir}go.mod" ] || continue
     [ "${dir%/}" = "${SUBDIR}" ] && continue
     if grep -q "${MODULE}" "${dir}go.mod"; then
@@ -490,12 +498,30 @@ run = """
   st.doing "Syncing workspace"
   st.do go work sync
   st.done
+  true
 """
 
 [tasks."workspace:sync-modules"]
 description = "Update all workspace submodules across all dependent modules"
-depends = ["workspace:sync-module libs/ogl", "workspace:sync-module contracts"]
-run = "true"
+depends = ["workspace:sync-module libs/ogl", "workspace:sync-module contracts", "workspace:sync-module mmw"]
+run = """
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cd {{config_root}} || exit 1
+  source scripts/libs/bash-stepper/st.bash
+  st.quiet
+
+  for dir in modules/*/; do
+    cd {{config_root}}
+    COMMIT=$(git -C "${dir}" rev-parse HEAD)
+    MODULE=$(grep '^module ' "${dir}/go.mod" | awk '{print $2}')
+    st.doing "Updating ${MODULE} in ${dir}"
+    st.do bash -c "go get '${MODULE}@${COMMIT}' && go mod tidy"
+    st.done
+  done
+
+  true
+  """
 
 [tasks."module:detach"]
 description = """Prepare a module to be detached from the Monolith:

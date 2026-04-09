@@ -11,8 +11,8 @@ require (
 	connectrpc.com/connect v1.19.1
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/jackc/pgx/v5 v5.9.1
-	github.com/piprim/mmw v0.0.0-20260330215535-bc0f2aacc35b
-	github.com/pivaldi/mmw-auth v0.0.0-20260326101207-71f2bc49ec24
+	github.com/piprim/mmw v0.0.0-20260409092134-c961c00ab351
+	github.com/pivaldi/mmw-auth v0.0.0-20260409092006-fb86eb7a23ce
 	github.com/pivaldi/mmw-contracts v0.0.0-20260323180942-26dc4fc984be
 	github.com/pivaldi/mmw-notifications v0.0.0-20260326101319-caf95dfd2c9e
 	github.com/pivaldi/mmw-todo v0.0.0-20260321181339-5d9491538aa7
@@ -70,6 +70,7 @@ require (
 	github.com/magiconair/properties v1.8.10 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.2.0 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
@@ -88,9 +89,11 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
+	github.com/pressly/goose/v3 v3.27.0 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sethvargo/go-envconfig v1.3.0 // indirect
+	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.2 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
@@ -108,6 +111,7 @@ require (
 	go.opentelemetry.io/otel v1.41.0 // indirect
 	go.opentelemetry.io/otel/metric v1.41.0 // indirect
 	go.opentelemetry.io/otel/trace v1.41.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/mod v0.32.0 // indirect
