@@ -485,31 +485,41 @@ run = """
 
   st.h1 "Syncing ${MODULE} @ ${COMMIT:0:12}"
 
-  for dir in . modules/*/ contracts/ libs/ogl/; do
-    [ -f "${dir}go.mod" ] || continue
-    [ "${dir%/}" = "${SUBDIR}" ] && continue
+  for dir in ./ modules/*/; do
+    [ -f "${dir}go.mod" ] || {
+      st.warn "go.mod not found in $dir"
+      continue
+    }
+    [ "${dir%/}" = "${SUBDIR%/}" ] && continue
+    st.doing "Updating ${MODULE} in ${dir}"
     if grep -q "${MODULE}" "${dir}go.mod"; then
-      st.doing "Updating ${MODULE} in ${dir}"
       st.do bash -c "cd '${dir}' && go get -u '${MODULE}@${COMMIT}' && go mod tidy"
       st.done
+    else
+      st.nothing
     fi
   done
 
   st.doing "Syncing workspace"
   st.do go work sync
   st.done
-  true
+
+  exit 0
 """
 
 [tasks."workspace:sync-modules"]
 description = "Update all workspace submodules across all dependent modules"
-depends = ["workspace:sync-module libs/ogl", "workspace:sync-module contracts", "workspace:sync-module mmw"]
+# depends = ["workspace:sync-module libs/ogl", "workspace:sync-module contracts", "workspace:sync-module mmw"]
 run = """
   #!/usr/bin/env bash
   set -euo pipefail
   cd {{config_root}} || exit 1
   source scripts/libs/bash-stepper/st.bash
   st.quiet
+
+  mise run workspace:sync-module libs/ogl
+  mise run workspace:sync-module contracts
+  mise run workspace:sync-module mmw
 
   for dir in modules/*/; do
     cd {{config_root}}
@@ -520,7 +530,7 @@ run = """
     st.done
   done
 
-  true
+  exit 0
   """
 
 [tasks."module:detach"]
@@ -528,13 +538,13 @@ description = """Prepare a module to be detached from the Monolith:
 - Synchronize all the modules with the latest mmw dependencies.
 - Un-stow a specific module"""
 depends = ["workspace:sync-modules", "stow:un-stow"]
-run = "true"
+run = "exit 0"
 
 [tasks."module:new"]
 description = "Scaffold a new module"
 run = """
   cd {{config_root}} || exit 1
-  go run {{vars.COMPILE_OPTIONS}} ./mmw/cmd/mmw-cli/main.go new module
+  go run {{vars.COMPILE_OPTIONS}} ./mmw/cmd/mmw-cli/main.go new module && exit 0
 """
 
 
