@@ -14,8 +14,8 @@ require (
 	github.com/piprim/mmw v0.0.0-20260412102203-45bd3f41cf8a
 	github.com/pivaldi/mmw-auth v0.0.0-20260412130630-db8469cd71d4
 	github.com/pivaldi/mmw-contracts v0.0.0-20260409102333-380efea737ec
-	github.com/pivaldi/mmw-notifications v0.0.0-20260412130835-3b68c562e0dd
-	github.com/pivaldi/mmw-todo v0.0.0-20260412130439-400f66bd1570
+	github.com/pivaldi/mmw-notifications v0.0.0-20260412134713-5d3470698d05
+	github.com/pivaldi/mmw-todo v0.0.0-20260412140304-4cf3c12563d7
 	github.com/rotisserie/eris v0.5.4
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.41.0

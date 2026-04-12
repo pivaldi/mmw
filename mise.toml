@@ -328,6 +328,11 @@ run = """
 goda graph -cluster \
   "shared(github.com/pivaldi/mmw/cmd/mmw:all, github.com/pivaldi/mmw/... + github.com/pivaldi/mmw-auth/... + github.com/pivaldi/mmw-todo/... + github.com/pivaldi/mmw-notifications/... + github.com/pivaldi/mmw-contracts/...) - github.com/pivaldi/mmw-auth/cmd/migration  - github.com/pivaldi/mmw-todo/cmd/migration  - github.com/pivaldi/mmw-auth/internal/infra/persistence/migrations/... - github.com/pivaldi/mmw-todo/internal/infra/persistence/migrations/...  - github.com/pivaldi/mmw-notifications/internal/infra/persistence/migrations/... - github.com/pivaldi/mmw-arch-test/..." \
   | dot -Tsvg -o graph.svg  &&  echo 'Generated graph: {{config_root}}/graph.svg'
+
+sed -i -E \
+    -e 's|https://pkg\\.go\\.dev/github\\.com/([^/@"]+)/([^/@"]+)/([^"]+)|https://github.com/\\1/\\2/tree/master/\\3|g' \\
+    -e 's|https://pkg\\.go\\.dev/github\\.com/([^/@"]+)/([^/@"]+)@[^"]*|https://github.com/\\1/\\2|g' \\
+    graph.svg
 """
 
 [tasks."arch:dep-tree"]
@@ -525,7 +530,7 @@ run = """
     cd {{config_root}}
     COMMIT=$(git -C "${dir}" rev-parse HEAD)
     MODULE=$(grep '^module ' "${dir}/go.mod" | awk '{print $2}')
-    st.doing "Updating ${MODULE} in ${dir}"
+    st.doing "Updating ${MODULE} in ./"
     st.do bash -c "go get -u '${MODULE}@${COMMIT}' && go mod tidy"
     st.done
   done

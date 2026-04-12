@@ -306,10 +306,10 @@ github.com/pivaldi/mmw-auth v0.0.0-20260412130630-db8469cd71d4 h1:8CWP3pwWLRu93t
 github.com/pivaldi/mmw-auth v0.0.0-20260412130630-db8469cd71d4/go.mod h1:6YNTRlWENh21AFzO1Y71KndJgMQlT3eIg384uhLyckQ=
 github.com/pivaldi/mmw-contracts v0.0.0-20260409102333-380efea737ec h1:gSU51FHCGPgOvoWuQ8isueSu7NsAFIjLYySbN4EJ6ec=
 github.com/pivaldi/mmw-contracts v0.0.0-20260409102333-380efea737ec/go.mod h1:3HtCUgM9ptl0Wtm04uaMf4BsVkqmG15QR/IUx8QeWhs=
-github.com/pivaldi/mmw-notifications v0.0.0-20260412130835-3b68c562e0dd h1:iinJcxavl7b+CGIxqBz9CtD3IKNCc4kBQ4jhoKjSc2U=
-github.com/pivaldi/mmw-notifications v0.0.0-20260412130835-3b68c562e0dd/go.mod h1:NiRfGHfp3gDAIjdZzKbHlAxzhT9jd0b2jjXm+VNiWt4=
-github.com/pivaldi/mmw-todo v0.0.0-20260412130439-400f66bd1570 h1:uhMitYerpEMDcd+4sgSTWfVOtbeiHK9p/ug50X1oOG0=
-github.com/pivaldi/mmw-todo v0.0.0-20260412130439-400f66bd1570/go.mod h1:lOw0NTLqszfF9A/kHyD/FmilXjhXuWG9q+bWAO/MCGM=
+github.com/pivaldi/mmw-notifications v0.0.0-20260412134713-5d3470698d05 h1:XcWFwCjXOJxAkiWTCudECcers+PpPKcgD2lhTLDGgZs=
+github.com/pivaldi/mmw-notifications v0.0.0-20260412134713-5d3470698d05/go.mod h1:aziqfx0dryLbqN+NzdxBc1lhSrDuOPZrOB9nxkw2Hqs=
+github.com/pivaldi/mmw-todo v0.0.0-20260412140304-4cf3c12563d7 h1:prBhxfYqjXk7+9FyamCl7i9nKfszP2BqmJOUnAHGGLc=
+github.com/pivaldi/mmw-todo v0.0.0-20260412140304-4cf3c12563d7/go.mod h1:lOw0NTLqszfF9A/kHyD/FmilXjhXuWG9q+bWAO/MCGM=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
