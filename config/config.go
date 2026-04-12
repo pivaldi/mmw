@@ -21,6 +21,9 @@ type Config struct {
 	pfconfig.Base
 	MainDatabase pfconfig.Database `mapstructure:"database"`
 	LogLevel     pfslog.LogLevel   `mapstructure:"log-level"`
+	// DebugEnabled exposes pprof routes and gRPC reflection.
+	// Controlled via SERVER_DEBUG_ENABLED env var or debug-enabled in TOML.
+	ServerDebugEnabled bool `env:"SERVER_DEBUG_ENABLED" mapstructure:"server-debug-enabled"`
 }
 
 func Load(ctx context.Context) (*Config, error) {

@@ -36,6 +36,8 @@ const (
 var exitCode = 0
 
 func main() {
+	// signal.NotifyContext cancels ctx on SIGINT / SIGTERM, which propagates a
+	// graceful-shutdown signal to every running module via platform.Run.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	var dbPool *pgxpool.Pool
 
@@ -47,23 +49,8 @@ func main() {
 		os.Exit(exitCode)
 	}()
 
-	config, err := mmwconfig.Load(ctx)
+	config, logger, err := initObservability(ctx)
 	if err != nil {
-		exitCode = 1
-		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
-
-		return
-	}
-
-	if config.Environment.IsDev() {
-		go startPprofServer()
-	}
-
-	logger, err := pfslog.New(pfslog.HandlerText, config.LogLevel.SlogLevel())
-	if err != nil {
-		exitCode = 1
-		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
-
 		return
 	}
 
@@ -73,62 +60,114 @@ func main() {
 		return
 	}
 
+	// Creates the in-process Watermill GoChannel and wraps it in the
+	// platform SystemEventBus interface.
+	// rawBus is the concrete GoChannel used directly by modules that need a
+	// message.Subscriber (e.g. the todo module's event router, the notifications
+	// module). eventBus is the publishing interface passed to every module so they
+	// can emit domain events without depending on the Watermill type.
 	rawBus := getRawbus(logger)
+	eventBus := pfevents.NewWatermillBus(rawBus)
 	defer rawBus.Close()
-	systemBus := pfevents.NewWatermillBus(rawBus)
 
-	// Create authModule first, todo depends on it.
+	modules, err := initModules(logger, dbPool, rawBus, eventBus)
+	if err != nil {
+		return
+	}
+
+	// platform.Run launches every module in its own goroutine via errgroup and
+	// blocks until the context is cancelled or one module fails.
+	logger.Info("Platform startup…")
+	if err = platform.New(logger, modules).Run(ctx); err != nil {
+		logError(logger, "platform error", err)
+	}
+}
+
+// initObservability loads the application config and creates the structured logger.
+// If config.ServerDebugEnabled is true, it also starts a pprof server on localhost:6060 in the background.
+// Both resources are derived from config, so they belong together.
+func initObservability(ctx context.Context) (*mmwconfig.Config, *slog.Logger, error) {
+	config, err := mmwconfig.Load(ctx)
+	if err != nil {
+		exitCode = 1
+		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+
+		//nolint:wrapcheck // Will be wrapped later.
+		return nil, nil, err
+	}
+
+	if config.ServerDebugEnabled {
+		// pprof is only useful in development; binding to localhost keeps it off the network.
+		go startPprofServer()
+	}
+
+	logger, err := pfslog.New(pfslog.HandlerText, config.LogLevel.SlogLevel())
+	if err != nil {
+		exitCode = 1
+		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+
+		//nolint:wrapcheck // Will be wrapped later.
+		return nil, nil, err
+	}
+
+	return config, logger, nil
+}
+
+// initModules wires and returns all application modules in dependency order.
+//
+// Ordering matters: auth must be initialised before todo because todo's Connect
+// handler requires an AuthPrivateService to validate JWT tokens. Notifications
+// subscribes to topics from both auth and todo, so it is initialised last.
+func initModules(
+	logger *slog.Logger,
+	dbPool *pgxpool.Pool,
+	rawBus *gochannel.GoChannel,
+	eventBus pfevents.SystemEventBus,
+) ([]pfcore.Module, error) {
+	// 1. Auth — no inter-module dependencies.
 	authModule, err := auth.New(auth.Infrastructure{
 		DBPool:   dbPool,
-		EventBus: systemBus,
+		EventBus: eventBus,
 		Logger:   logger.With("module", auth.ModuleName),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize auth module", err)
-		return
+
+		//nolint:wrapcheck // Will be wrapped later.
+		return nil, err
 	}
 
-	// Create the todo module
+	// 2. Todo — depends on auth's private service to validate bearer tokens.
 	todoModule, err := todo.New(todo.Infrastructure{
 		DBPool:     dbPool,
-		EventBus:   systemBus,
+		EventBus:   eventBus,
 		Subscriber: rawBus,
 		Logger:     logger.With("module", todo.ModuleName),
 		AuthSvc:    authModule.PrivateService(),
 	})
 	if err != nil {
 		logError(logger, "failed to initialize todo module", err)
-		return
+
+		//nolint:wrapcheck // Will be wrapped later.
+		return nil, err
 	}
 
-	// Create the notifications module
-	notifEvents := tododef.Topics
-	notifEvents = append(notifEvents, authdef.Topics...)
-	notifInfra := notifications.Infrastructure{
+	// 3. Notifications — subscribes to domain events from both auth and todo.
+	//    The topic list is built by merging the two modules' exported topic slices.
+	notifModule, err := notifications.New(notifications.Infrastructure{
 		Subscriber:  rawBus,
 		Logger:      logger.With("module", notifications.ModuleName),
-		Topics:      notifEvents,
+		Topics:      append(tododef.Topics, authdef.Topics...),
 		WithNotifer: true,
-	}
-	notifModule, err := notifications.New(notifInfra)
+	})
 	if err != nil {
-		logError(logger, "failed to initialyze notifications module", err)
-		return
+		logError(logger, "failed to initialize notifications module", err)
+
+		//nolint:wrapcheck // Will be wrapped later.
+		return nil, err
 	}
 
-	// Platform startup
-	logger.Info("Platform startup…")
-	modules := []pfcore.Module{
-		todoModule,
-		authModule,
-		notifModule,
-	}
-
-	err = platform.New(logger, modules).Run(ctx) // Blocks until shutdown
-	if err != nil {
-		logError(logger, "platform error", err)
-		return
-	}
+	return []pfcore.Module{todoModule, authModule, notifModule}, nil
 }
 
 func logError(logger *slog.Logger, msg string, err error) {

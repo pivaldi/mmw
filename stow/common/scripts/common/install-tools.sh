@@ -83,6 +83,14 @@ if [ "$APP_ENV" = "development" ]; then
         st.nothing
     fi
 
+    st.doing "Installing grpcui"
+    if $UPDATE || ! command -v grpcui >/dev/null 2>&1; then
+        st.do go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
+        st.done
+    else
+        st.nothing
+    fi
+
     st.doing "Installing gopls (LSP)"
     if $UPDATE || ! command -v gopls >/dev/null 2>&1; then
         st.do go install golang.org/x/tools/gopls@latest

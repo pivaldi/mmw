@@ -490,7 +490,7 @@ run = """
     [ "${dir%/}" = "${SUBDIR}" ] && continue
     if grep -q "${MODULE}" "${dir}go.mod"; then
       st.doing "Updating ${MODULE} in ${dir}"
-      st.do bash -c "cd '${dir}' && go get '${MODULE}@${COMMIT}' && go mod tidy"
+      st.do bash -c "cd '${dir}' && go get -u '${MODULE}@${COMMIT}' && go mod tidy"
       st.done
     fi
   done
@@ -516,7 +516,7 @@ run = """
     COMMIT=$(git -C "${dir}" rev-parse HEAD)
     MODULE=$(grep '^module ' "${dir}/go.mod" | awk '{print $2}')
     st.doing "Updating ${MODULE} in ${dir}"
-    st.do bash -c "go get '${MODULE}@${COMMIT}' && go mod tidy"
+    st.do bash -c "go get -u '${MODULE}@${COMMIT}' && go mod tidy"
     st.done
   done
 
@@ -527,7 +527,7 @@ run = """
 description = """Prepare a module to be detached from the Monolith:
 - Synchronize all the modules with the latest mmw dependencies.
 - Un-stow a specific module"""
-depends = ["workspace:sync-module libs/ogl", "workspace:sync-module contracts", "stow:un-stow"]
+depends = ["workspace:sync-modules", "stow:un-stow"]
 run = "true"
 
 [tasks."module:new"]
