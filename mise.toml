@@ -576,3 +576,15 @@ run = "cd modules/plop && mise run test:integration"
 [tasks."plop:test:contract"]
 description = "Run contract tests for plop module"
 run = "cd modules/plop && mise run test:contract"
+
+[tasks."toto:test"]
+description = "Run unit tests for toto module"
+run = "cd modules/toto && mise run test"
+
+[tasks."toto:test:integration"]
+description = "Run integration tests for toto module"
+run = "cd modules/toto && mise run test:integration"
+
+[tasks."toto:test:contract"]
+description = "Run contract tests for toto module"
+run = "cd modules/toto && mise run test:contract"

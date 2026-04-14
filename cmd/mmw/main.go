@@ -49,7 +49,15 @@ func main() {
 		os.Exit(exitCode)
 	}()
 
-	config, logger, err := initObservability(ctx)
+	config, err := mmwconfig.Load(ctx)
+	if err != nil {
+		exitCode = 1
+		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
+
+		return
+	}
+
+	logger, err := initObservability(config)
 	if err != nil {
 		return
 	}
@@ -86,16 +94,7 @@ func main() {
 // initObservability loads the application config and creates the structured logger.
 // If config.ServerDebugEnabled is true, it also starts a pprof server on localhost:6060 in the background.
 // Both resources are derived from config, so they belong together.
-func initObservability(ctx context.Context) (*mmwconfig.Config, *slog.Logger, error) {
-	config, err := mmwconfig.Load(ctx)
-	if err != nil {
-		exitCode = 1
-		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
-
-		//nolint:wrapcheck // Will be wrapped later.
-		return nil, nil, err
-	}
-
+func initObservability(config *mmwconfig.Config) (*slog.Logger, error) {
 	if config.ServerDebugEnabled {
 		// pprof is only useful in development; binding to localhost keeps it off the network.
 		go startPprofServer()
@@ -107,10 +106,10 @@ func initObservability(ctx context.Context) (*mmwconfig.Config, *slog.Logger, er
 		_, _ = fmt.Fprint(os.Stdout, eris.ToString(err, true)+"\n")
 
 		//nolint:wrapcheck // Will be wrapped later.
-		return nil, nil, err
+		return nil, err
 	}
 
-	return config, logger, nil
+	return logger, nil
 }
 
 // initModules wires and returns all application modules in dependency order.
@@ -158,7 +157,7 @@ func initModules(
 		Subscriber:  rawBus,
 		Logger:      logger.With("module", notifications.ModuleName),
 		Topics:      append(tododef.Topics, authdef.Topics...),
-		WithNotifer: true,
+		WithNotifer: false,
 	})
 	if err != nil {
 		logError(logger, "failed to initialize notifications module", err)
