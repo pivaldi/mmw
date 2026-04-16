@@ -1,6 +1,6 @@
 # MMW — Modular Monolith Worskpace (POC)
 
-A proof-of-concept of the [G Modular Monolith White Paper](https://github.com/pivaldi/go-modular-monolith-white-paper)
+A proof-of-concept of the [Go Modular Monolith White Paper](https://github.com/pivaldi/go-modular-monolith-white-paper)
 that can evolve into a distributed system without rewriting application code.
 All modules run in a single process in development; extracting a module to its own deployment requires only a
 composition-root change.
