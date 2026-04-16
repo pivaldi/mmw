@@ -135,13 +135,7 @@ run = "docker-compose -f deployments/docker-compose.yml down postgres"
 
 [tasks."db:migrate"]
 description = "Migrate Up All Services"
-run = """
-#!/usr/bin/env bash
-set -euo pipefail
-
-  cd {{config_root}}/modules/todo/ && mise run db:migrate:up
-  cd {{config_root}}/modules/auth/ && mise run db:migrate:up
-"""
+run = "go run cmd/migrate/main.go"
 
 [tasks."db:connect"]
 description = "Connect to the database"
@@ -158,8 +152,16 @@ run = "go tool air"
 [tasks.build]
 description = "Build the application binary"
 run = """
+mise run todo:build:web
 [ -e {{vars.BUILD_DIR}} ] || mkdir -p {{vars.BUILD_DIR}}
 go build {{vars.COMPILE_OPTIONS}} -o {{vars.BUILD_DIR}}/{{vars.BINARY_NAME}} -v {{vars.BINARY_PATH}}
+  """
+
+[tasks."todo:build:web"]
+description = "Production build of the todo frontend"
+run = """
+  cd modules/todo/web/todoapp/
+  mise run build
 """
 
 [tasks."buf:deps"]

@@ -18,6 +18,7 @@ import (
 	"github.com/piprim/mmw/pkg/platform"
 	pfcore "github.com/piprim/mmw/pkg/platform/core"
 	pfevents "github.com/piprim/mmw/pkg/platform/events"
+	pfpg "github.com/piprim/mmw/pkg/platform/pg"
 	pfslog "github.com/piprim/mmw/pkg/platform/slog"
 	auth "github.com/pivaldi/mmw-auth"
 	authdef "github.com/pivaldi/mmw-contracts/go/application/auth"
@@ -30,7 +31,6 @@ import (
 
 const (
 	outputChannelBufferSize = 1024
-	minDatabaseURLLength    = 20
 )
 
 var exitCode = 0
@@ -62,7 +62,7 @@ func main() {
 		return
 	}
 
-	dbPool, err = getDatabasePoolConnexion(ctx, logger, config.MainDatabase.URL())
+	dbPool, err = pfpg.GetPgxPool(ctx, logger, config.MainDatabase.URL())
 	if err != nil {
 		logError(logger, "failed to create database pool", err)
 		return
@@ -174,23 +174,6 @@ func logError(logger *slog.Logger, msg string, err error) {
 	logger.Error(msg, "err", err)
 }
 
-func getDatabasePoolConnexion(ctx context.Context, logger *slog.Logger, dbUrl string) (*pgxpool.Pool, error) {
-	logger.Info("connecting to database", "url", maskDatabaseURL(dbUrl))
-
-	dbPool, err := pgxpool.New(ctx, dbUrl)
-	if err != nil {
-		return nil, eris.Wrap(err, "connecting to database")
-	}
-
-	if err := dbPool.Ping(ctx); err != nil {
-		return dbPool, eris.Wrap(err, "pinging database")
-	}
-
-	logger.Info("database connection established")
-
-	return dbPool, nil
-}
-
 func getRawbus(logger *slog.Logger) *gochannel.GoChannel {
 	watermillLogger := watermill.NewSlogLogger(logger)
 	rawBus := gochannel.NewGoChannel(
@@ -202,16 +185,6 @@ func getRawbus(logger *slog.Logger) *gochannel.GoChannel {
 	)
 
 	return rawBus
-}
-
-// maskDatabaseURL masks sensitive parts of database URL for logging
-func maskDatabaseURL(url string) string {
-	// Simple masking - in production use more robust URL parsing
-	if len(url) < minDatabaseURLLength {
-		return "***"
-	}
-
-	return url[:10] + "***" + url[len(url)-10:]
 }
 
 func startPprofServer() {

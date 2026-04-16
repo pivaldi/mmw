@@ -119,25 +119,20 @@ the modules from `go.mod` when there is no `go.work` in scope.
 # Ignore the workspace (or remove go.work if you prefer)
 export GOWORK=off
 
-# Migrate auth schema
-cd modules/auth
-go run ./cmd/migration up
-cd ../..
-
-# Migrate todo schema
-cd modules/todo
-go run ./cmd/migration up
-cd ../..
+# Migrate all module at once
+DB_PASSWORD=postgres APP_ENV=development go run cmd/migrate/main.go
 ```
 
 ### 1d — Run the monolith
 
 ```bash
-GOWORK=off go run ./cmd/mmw
+GOWORK=off DB_PASSWORD=postgres APP_ENV=development JWT_SECRET="fake-secret" go run ./cmd/mmw
 ```
 
 All three modules (auth :8091, todo :8090, notifications) start in the same
 process. Module communication is entirely in-process — zero network overhead.
+
+The front-end is embedded and serve by the monolith, so opening http://localhost:8090/login in a web browser works as is.
 
 ---
 
@@ -199,6 +194,12 @@ go run -tags no_clickhouse,no_mysql,no_mssql ./cmd/mmw
 The monolith starts all modules in a single process. The `go.work` file ensures
 that local module directories (`modules/auth`, `modules/todo`, …) take
 precedence over the pinned versions in `go.mod`.
+
+The front-end SPA must be started manually in day-to-day development:
+```bash
+cd modules/todo/web/todoapp/
+mise run start # or the alias "mise run run"
+```
 
 ### 2d — Useful daily tasks
 
