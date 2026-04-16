@@ -36,7 +36,7 @@ composition-root change.
 All dependencies will be installed by the the script `./configure`.
 
 | Tool | Purpose |
-|---|---|---|
+|---|---|
 | **Go ≥ 1.26** | Build and run |
 | **Docker** | PostgreSQL container |
 | **mise** | Task runner (modes 2 & 3) |
