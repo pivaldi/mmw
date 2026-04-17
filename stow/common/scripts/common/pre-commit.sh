@@ -21,17 +21,23 @@ st.h1 "Running pre-commit checks..."
 
 cd "$APP_ROOT_PATH" || l.fail
 
-# Get list of staged files using null-terminated strings
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM -z)
+# Get files that would be committed by `git commit -a`:
+# staged files + modified tracked files (deduped)
+STAGED_FILES="$(
+    {
+        git diff --cached --name-only --diff-filter=ACM
+        git diff --name-only --diff-filter=ACM
+    } | sort -u
+)"
 
 if [ -z "$STAGED_FILES" ]; then
-    echo "No staged files to check"
+    echo "No staged or modified files to check"
     st.nothing
     exit 0
 fi
 
 st.h2 "Fix trailing whitespace and ensure newline at end of file"
-printf "%s" "$STAGED_FILES" | while IFS= read -r -d '' file; do
+printf "%s\n" "$STAGED_FILES" | while IFS= read -r file; do
     if [ -f "$file" ]; then
         st.doing "Removing trailing whitespace on $file"
         st.do sed -i -e 's/[[:space:]]*$//' "$file"
@@ -53,12 +59,10 @@ done
 st.h2 "Check YAML syntax"
 st.doing "Checking YAML files..."
 PASS=false
-# Use grep -z to filter null-terminated strings
-YAML_FILES=$(printf "%s" "$STAGED_FILES" | grep -z -E '\.ya?ml$' || true)
+YAML_FILES=$(printf "%s\n" "$STAGED_FILES" | grep -E '\.ya?ml$' || true)
 
 if [ -n "$YAML_FILES" ]; then
-    # Use xargs -0 to read the null-terminated strings
-    st.do printf "%s" "$YAML_FILES" | xargs -0 -r yamllint -d relaxed 2>/dev/null || true
+    st.do printf "%s\n" "$YAML_FILES" | xargs -r yamllint -d relaxed 2>/dev/null || true
     PASS=true
 fi
 
@@ -70,7 +74,7 @@ fi
 
 DOING_MSG="Check for large files (>500KB)"
 st.h2 "$DOING_MSG"
-printf "%s" "$STAGED_FILES" | while IFS= read -r -d '' file; do
+printf "%s\n" "$STAGED_FILES" | while IFS= read -r file; do
     if [ -f "$file" ]; then
         size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0)
         if [ "$size" -gt 512000 ]; then
@@ -80,16 +84,25 @@ printf "%s" "$STAGED_FILES" | while IFS= read -r -d '' file; do
 done
 st.done
 
-st.h2 "Go linting/formatting (staged files only)"
-STAGED_GO_FILES=$(printf "%s" "$STAGED_FILES" | grep -z '\.go$' || true)
+st.h2 "Go linting/formatting (staged and modified files)"
+STAGED_GO_FILES=$(printf "%s\n" "$STAGED_FILES" | grep '\.go$' || true)
 
 if [ -n "$STAGED_GO_FILES" ]; then
-    st.doing "Running golangci-lint..."
+    st.doing "Running golangci-lint…"
     st.do golangci-lint config verify
 
-    printf "%s" "$STAGED_GO_FILES" | while IFS= read -r -d '' file; do
+    # Lint at package level (not per-file) so all linters fire correctly
+    while IFS= read -r pkg; do
+        st.doing "linting pkg ./$pkg"
+        if st.do golangci-lint run "./$pkg"; then
+            st.done
+        else
+            st.fail
+        fi
+    done < <(printf "%s\n" "$STAGED_GO_FILES" | while IFS= read -r f; do dirname "$f"; done | sort -u)
+
+    printf "%s\n" "$STAGED_GO_FILES" | while IFS= read -r file; do
         [ -f "$file" ] || continue
-        st.do golangci-lint run --fix "$file"
         st.do gofumpt -l -w "$file"
         st.do git add "$file"
     done

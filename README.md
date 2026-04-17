@@ -5,6 +5,8 @@ that can evolve into a distributed system without rewriting application code.
 All modules run in a single process in development; extracting a module to its own deployment requires only a
 composition-root change.
 
+Read the [Technical Implementation Reference](./TECHNICAL-IMPLEMENTATION-REFERENCE.md) for understanding in-deep the technical implementation.
+
 ---
 
 ## Architecture at a Glance
