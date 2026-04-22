@@ -116,7 +116,7 @@ poc/                                 # Go Workspace root
 │   │   │   └── slog/                # pfslog.New, HandlerText, HandlerJson
 │   │   ├── archtest/                # Architecture validation (Validator interface + RunAll)
 │   │   └── scaffold/                # Module/contract code generation
-│   └── cmd/mmw-cli/                 # CLI: mmw new module, mmw new contract, mmw check arch
+│   └── cmd/mmw/                    # CLI: mmw new module, mmw new contract, mmw check arch, mmw check xxx, mmw pre-commit
 │
 ├── modules/
 │   ├── auth/                        # github.com/pivaldi/mmw-auth
@@ -505,7 +505,7 @@ Angular 17 SPA located in `modules/todo/web/todoapp/`.
 
 Each module has an `arch-go.yml` defining allowed import dependencies for each layer.
 
-The `mmw check arch` CLI command (`mmw/cmd/mmw-cli/`) runs `archtest.RunAll`, which:
+The `mmw check arch` CLI command (`mmw/cmd/mmw/`) runs `archtest.RunAll`, which:
 1. Discovers all modules with a `mise arch:check` task.
 2. Runs `arch-go` in each module directory.
 3. Aggregates and prints a pass/fail summary.
@@ -513,7 +513,7 @@ The `mmw check arch` CLI command (`mmw/cmd/mmw-cli/`) runs `archtest.RunAll`, wh
 Run it via:
 ```bash
 cd poc
-go run ./mmw/cmd/mmw-cli check arch
+go run ./mmw/cmd/mmw check arch
 ```
 
 ### Logging
@@ -589,14 +589,14 @@ buf generate --template buf.gen.yaml
 
 ```bash
 cd poc
-go run ./mmw/cmd/mmw-cli check arch
+go run ./mmw/cmd/mmw check arch
 ```
 
 ### Adding a New Module
 
 ```bash
 cd poc/mmw
-go run ./cmd/mmw-cli new module
+go run ./cmd/mmw new module
 ```
 
 Follow the scaffold prompts. Then:
@@ -624,8 +624,10 @@ Follow the scaffold prompts. Then:
 | **Domain→Connect error map** | `modules/todo/internal/adapters/inbound/connect/errors.go` |
 | **Domain→Topic map** | `modules/todo/internal/adapters/outbound/events/topics.go` |
 | **Config Loading** | `modules/todo/internal/infra/config/config.go` |
-| **Architecture Tests** | `mmw/pkg/archtest/` + `mmw/cmd/mmw-cli/` |
-| **Scaffold** | `mmw/pkg/scaffold/` + `mmw/cmd/mmw-cli/` |
+| **Architecture Tests** | `mmw/pkg/archtest/` + `mmw/cmd/mmw/` |
+| **Scaffold** | `mmw/pkg/scaffold/` + `mmw/cmd/mmw/` |
+| **check** | `mmw/pkg/scaffold/` + `mmw/cmd/mmw/` |
+| **pre-commit** | `mmw/pkg/scaffold/` + `mmw/cmd/mmw/` |
 
 ---
 

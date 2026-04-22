@@ -108,10 +108,8 @@ run = "UPDATE=true {{config_root}}/stow/common/scripts/common/install-tools-ss.s
 
 [tasks.pre-commit]
 depends = ["arch:check", "buf:lint"]
-description = "Pre-commit checks (can be run manually or as git hook)"
-run = """
-  APP_ROOT_PATH={{config_root}} {{config_root}}/stow/common/scripts/common/pre-commit.sh
-"""
+description = "Pre-commit checks"
+run = "go tool mmw check pre-commit --modified"
 alias = "pc"
 
 [tasks."db:reset"]
@@ -291,20 +289,8 @@ run = """
  """
 
 [tasks.lint]
-description = "Run linter on all projects"
-run = """
-#!/usr/bin/env bash
-  cd {{config_root}} || exit 1
-  source scripts/libs/bash-stepper/st.bash
-
-  st.quiet
-
-  for dir in "libs/ogl" "mmw" "contracts" modules/*; do
-    st.h1 "Linting ${dir}…"
-    cd "{{config_root}}/$dir" && golangci-lint run ./...
-    echo
-  done
- """
+description = "Run golangci-lint across all workspace modules"
+run = "go tool mmw check lint --workspace"
 
 [tasks."lint:verify-config"]
 description = "Verify golangci-lint configuration"
@@ -348,7 +334,7 @@ run = """
 description = "Validate architectural boundaries across entire monorepo"
 run = """
   cd {{config_root}} || exit 1
-  go run {{vars.COMPILE_OPTIONS}} ./mmw/cmd/mmw-cli/main.go check arch
+  go tool mmw check arch
   """
 
 [tasks."deps:circular"]
@@ -551,9 +537,8 @@ run = "exit 0"
 description = "Scaffold a new module"
 run = """
   cd {{config_root}} || exit 1
-  go run {{vars.COMPILE_OPTIONS}} ./mmw/cmd/mmw-cli/main.go new module && exit 0
+  go tool mmw new module && exit 0
 """
-
 
 [tasks.help]
 description = "Display available tasks"

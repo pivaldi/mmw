@@ -311,7 +311,7 @@ poc/
 ├── libs/ogl/                    ← General-purpose Go utilities
 ├── mmw/                         ← Platform library (github.com/piprim/mmw)
 │   ├── pkg/platform/            ← Module runner, UoW, outbox relay, HTTP server…
-│   └── cmd/mmw-cli/             ← mmw check arch, mmw new module, mmw new contract
+│   └── cmd/mmw/                 ← mmw check arch, mmw new module, mmw new contract
 ├── modules/
 │   ├── auth/
 │   │   ├── auth.go              ← Module wiring (New, Start, PrivateService)
@@ -353,6 +353,10 @@ data. A background `EventsRelay` polls the table and publishes to the Watermill
 bus. A crash between the two steps is safe — the relay retries on restart.
 
 **Architecture boundaries are enforced in CI.** `mise run arch:check` (or
-`go run ./mmw/cmd/mmw-cli check arch`) runs `arch-go` against every module's
+`go run ./mmw/cmd/mmw check arch`) runs `arch-go` against every module's
 `arch-go.yml` rules. The pre-commit hook blocks commits that violate layer
 boundaries.
+
+## LLM policy
+
+This project is in part assisted by LLMs.

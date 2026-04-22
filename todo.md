@@ -1,9 +1,5 @@
 # TODO
 
-## pre-commit
-
-The pre-commit script depends on `mmw/cmd/mmw-cli/cmd/test/` so the pre-commit process should live in `mmw`
-
 ## Bootstrap a `mmw` development environment.
 
 Provide a command that bootstrap a complete Modular Monolith Workspace with a generated ready to use module.
@@ -11,3 +7,9 @@ Provide a command that bootstrap a complete Modular Monolith Workspace with a ge
 ## Extract the scaffolding in a standalone Go package
 
 ## Choose between the OVYA SQL querier (or other solution) and GraphQL
+
+## Enforce Git Conventional Commits
+
+- https://github.com/commitizen/cz-cli (not maitained)
+- https://github.com/lintingzhen/commitizen-go (go)
+- https://github.com/conventional-changelog/commitlint

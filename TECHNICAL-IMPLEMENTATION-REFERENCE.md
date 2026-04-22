@@ -42,7 +42,7 @@ This proof of concept relies heavily on the [mmw framework](https://github.com/p
     - [Test Organization](#test-organization)
     - [Operational Commands](#operational-commands)
     - [Architecture Validation](#architecture-validation)
-  - [8. CLI Tooling (`mmw-cli`)](#8-cli-tooling-mmw-cli)
+  - [8. CLI Tooling (`mmw`)](#8-cli-tooling-mmw)
     - [`mmw new module`](#mmw-new-module)
     - [`mmw new contract <name>`](#mmw-new-contract-name)
     - [`mmw check arch`](#mmw-check-arch)
@@ -144,7 +144,7 @@ use (
 │   │   ├── archtest/                     # Architecture boundary validators
 │   │   └── scaffold/                     # Cookiecutter-style module generator
 │   └── cmd/
-│       └── mmw-cli/                      # mmw CLI tool (new, check, test)
+│       └── mmw/                          # mmw CLI tool (new, check, test)
 │           └── cmd/
 │               ├── new/                  # mmw new module / mmw new contract
 │               ├── check/                # mmw check arch
@@ -929,7 +929,7 @@ buf generate --template buf.gen.todo.yaml
 # Lint proto files
 cd contracts && buf lint
 
-# Test coverage table (via mmw-cli)
+# Test coverage table (via mmw)
 cd modules/todo && mmw test coverage
 
 # Via mise (from repo root)
@@ -975,9 +975,9 @@ All checks passed.
 ```
 
 
-## 8. CLI Tooling (`mmw-cli`)
+## 8. CLI Tooling (`mmw`)
 
-**Binary:** `mmw` (built from `mmw/cmd/mmw-cli/`)
+**Binary:** `mmw` (built from `mmw/cmd/mmw/`)
 
 ```
 mmw new module [--template <path>]    Scaffold a new module interactively

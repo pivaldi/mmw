@@ -5,6 +5,7 @@ use (
 	./contracts
 	./libs/ogl
 	./mmw
+	./mmw/goplt/
 	./modules/auth
 	./modules/notifications
 	./modules/todo
