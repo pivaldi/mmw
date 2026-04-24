@@ -209,7 +209,7 @@ _, err := executor.Exec(ctx, query, pgx.NamedArgs(pfdb.StructArgs(todo.Snapshot(
 ```go
 import pfoutbox "github.com/piprim/mmw/pkg/platform/db/outbox"
 
-relay := pfoutbox.NewEnventsRelay(pool, eventBus, logger, "todo.event")
+relay := pfoutbox.NewEventsRelay(pool, eventBus, logger, "todo.event")
 // Started in Module.Start:
 g.Go(func() error { relay.Start(gCtx); return nil })
 ```

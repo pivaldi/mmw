@@ -225,7 +225,7 @@ run = """
 
   st.quiet
 
-  for dir in "modules/todo" "modules/auth" "modules/notifications"; do
+  for dir in modules/*; do
     st.h1 "Test contract ${dir}…"
     cd "{{config_root}}/$dir"
     if grep -q 'test:contract' mise.toml; then
@@ -246,7 +246,7 @@ run = """
 
   st.quiet
 
-  for dir in "modules/todo" "modules/auth" "modules/notifications"; do
+  for dir in modules/*; do
     st.h1 "Test contract ${dir}…"
     cd "{{config_root}}/$dir"
     if grep -q 'test:integration' mise.toml; then
