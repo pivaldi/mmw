@@ -29,7 +29,9 @@
       "Bash(golangci-lint run:*)",
       "Bash(/home/gemini/.local/share/mise/installs/golangci-lint/latest/bin/golangci-lint run:*)",
       "Bash(grep -n '\"\"fmt\"\"\\\\|\"\"os\"\"' /workspace/modules/auth/cmd/auth/main.go)",
-      "Skill(golang-testing)"
+      "Skill(golang-testing)",
+      "Skill(golang-code-style)",
+      "Skill(golang-naming)"
     ],
     "deny": [
       "Bash(git commit:*)"

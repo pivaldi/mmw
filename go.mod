@@ -12,11 +12,11 @@ require (
 	connectrpc.com/connect v1.19.1
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/jackc/pgx/v5 v5.9.1
-	github.com/piprim/mmw v0.0.0-20260417220934-84bf176cecdd
-	github.com/pivaldi/mmw-auth v0.0.0-20260412130630-db8469cd71d4
+	github.com/piprim/mmw v0.1.1-0.20260424155339-cc7c82f34777
+	github.com/pivaldi/mmw-auth v0.0.0-20260424123742-26c2aac5512e
 	github.com/pivaldi/mmw-contracts v0.0.0-20260409102333-380efea737ec
-	github.com/pivaldi/mmw-notifications v0.0.0-20260412134713-5d3470698d05
-	github.com/pivaldi/mmw-todo v0.0.0-20260412140304-4cf3c12563d7
+	github.com/pivaldi/mmw-notifications v0.0.0-20260414111027-9745f1cfc9f3
+	github.com/pivaldi/mmw-todo v0.0.0-20260424123721-cdb03b51b07c
 	github.com/rotisserie/eris v0.5.4
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.41.0
@@ -76,6 +76,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -110,6 +111,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.3.0 // indirect
+	github.com/piprim/goplt v0.8.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
