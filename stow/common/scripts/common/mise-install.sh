@@ -13,6 +13,8 @@ readonly MI_SCRIPT_DIR
 
 l.trap_error
 
+st.quiet
+
 [ -z "${APP_ENV:-}" ] && {
     st.abort "APP_ENV not set"
 }

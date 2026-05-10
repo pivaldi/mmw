@@ -14,6 +14,8 @@ l.trap_error
 
 UPDATE=${UPDATE:-false}
 
+st.quiet
+
 st.doing "Installing direnv"
 if $UPDATE || ! command -v direnv >/dev/null 2>&1; then
     st.do go install github.com/direnv/direnv/v2@latest

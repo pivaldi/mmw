@@ -42,6 +42,7 @@ run = """
   cd {{config_root}} || exit 1
   source scripts/libs/bash-stepper/st.bash
 
+  st.quiet
   st.h1 'Fix GOPRIVATE for this project'
   st.doing go env -w "GOPRIVATE=github.com/pivaldi/mmw-*"
   st.done
@@ -100,11 +101,11 @@ run = "{{config_root}}/scripts/un-stow.sh {{config_root}}"
 
 [tasks.tools]
 description = "Install Needed Tools"
-run = "{{config_root}}/stow/common/scripts/common/install-tools-ss.sh"
+run = "{{config_root}}/stow/common/scripts/common/install-tools.sh"
 
 [tasks."tools:update"]
 description = "Install and Update Needed Tools"
-run = "UPDATE=true {{config_root}}/stow/common/scripts/common/install-tools-ss.sh"
+run = "UPDATE=true {{config_root}}/stow/common/scripts/common/install-tools.sh"
 
 [tasks.pre-commit]
 depends = ["arch:check", "buf:lint"]

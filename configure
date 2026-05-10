@@ -10,8 +10,10 @@ set -o errtrace
 APP_ROOT_PATH=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 # readonly APP_ROOT_PATH
 
-ST_QUIET=true . "$APP_ROOT_PATH/stow/common/scripts/common/init.bash"
+. "$APP_ROOT_PATH/stow/common/scripts/common/init.bash"
 l.trap_error
+
+st.quiet
 
 st.h1 "Configuring Root Git Sub Project"
 st.doing "Retrieving Git Submodule"
@@ -39,16 +41,9 @@ else
     st.nothing "[Already Installed]"
 fi
 
-st.h1 'Configuration of APP_ENV'
-st.doing 'Configuration of APP_ENV'
-if isConfigAppEnvNeeded; then
-    cp "${APP_ROOT_PATH}/.envrc.example" "${APP_ROOT_PATH}/.envrc"
-    configAppEnv
-else
-    st.nothing
-fi
+configureEnv
 
-. "$APP_ROOT_PATH/.envrc" || exit 1
+# direnv allow "$APP_ROOT_PATH/.envrc"
 
 "${APP_ROOT_PATH}/stow/common/scripts/common/mise-install.sh"
 
@@ -57,13 +52,13 @@ st.doing 'Core Installation'
 st.do mise install
 st.done
 
-st.doing 'Install stream-stepper'
-if ! st.cmdExists stream-stepper; then
-    st.do go install github.com/pivaldi/stream-stepper@latest
-    st.done
-else
-    st.nothing
-fi
+# st.doing 'Install stream-stepper'
+# if ! command -v stream-stepper >/dev/null 2>&1; then
+#     st.do go install github.com/pivaldi/stream-stepper@latest
+#     st.done
+# else
+#     st.nothing
+# fi
 
 st.doing 'Install pre-commit hook'
 st.do mise generate git-pre-commit --task=pre-commit --write
@@ -74,9 +69,7 @@ st.do mise run setup
 st.done
 
 st.doing 'Install/Update tools'
-st.unquiet
-st.do mise run tools:update
-st.quiet
+# st.do mise run tools:update
 st.done
 
 st.h1 "Configure Sub Services"
@@ -84,7 +77,7 @@ st.h1 "Configure Sub Services"
 HERE="${APP_ROOT_PATH}"
 readonly HERE
 
-for dir in services/*/; do
+for dir in modules/*; do
     LC_DOING="Configuring '${dir}'"
     st.doing "$LC_DOING"
     cd "${HERE}/$dir" || exit 1

@@ -78,7 +78,7 @@ func main() {
 	eventBus := pfevents.NewWatermillBus(rawBus)
 	defer rawBus.Close()
 
-	modules, err := initModules(logger, dbPool, rawBus, eventBus)
+	modules, err := initModules(ctx, logger, dbPool, rawBus, eventBus)
 	if err != nil {
 		return
 	}
@@ -118,13 +118,14 @@ func initObservability(config *mmwconfig.Config) (*slog.Logger, error) {
 // handler requires an AuthPrivateService to validate JWT tokens. Notifications
 // subscribes to topics from both auth and todo, so it is initialised last.
 func initModules(
+	ctx context.Context,
 	logger *slog.Logger,
 	dbPool *pgxpool.Pool,
 	rawBus *gochannel.GoChannel,
 	eventBus pfevents.SystemEventBus,
 ) ([]pfcore.Module, error) {
 	// 1. Auth — no inter-module dependencies.
-	authModule, err := auth.New(auth.Infrastructure{
+	authModule, err := auth.New(ctx, auth.Infrastructure{
 		DBPool:   dbPool,
 		EventBus: eventBus,
 		Logger:   logger.With("module", auth.ModuleName),
@@ -137,7 +138,7 @@ func initModules(
 	}
 
 	// 2. Todo — depends on auth's private service to validate bearer tokens.
-	todoModule, err := todo.New(todo.Infrastructure{
+	todoModule, err := todo.New(ctx, todo.Infrastructure{
 		DBPool:     dbPool,
 		EventBus:   eventBus,
 		Subscriber: rawBus,

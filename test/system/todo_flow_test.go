@@ -21,12 +21,12 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	"connectrpc.com/connect"
+	pfevents "github.com/piprim/mmw/pkg/platform/events"
+	auth "github.com/pivaldi/mmw-auth"
 	authv1 "github.com/pivaldi/mmw-contracts/go/network/auth/v1"
 	"github.com/pivaldi/mmw-contracts/go/network/auth/v1/authv1connect"
 	todov1 "github.com/pivaldi/mmw-contracts/go/network/todo/v1"
 	"github.com/pivaldi/mmw-contracts/go/network/todo/v1/todov1connect"
-	pfevents "github.com/piprim/mmw/pkg/platform/events"
-	auth "github.com/pivaldi/mmw-auth"
 	todo "github.com/pivaldi/mmw-todo"
 )
 
@@ -122,6 +122,7 @@ func TestMain(m *testing.M) {
 func newAuthPublicClient() authv1connect.AuthPublicServiceClient {
 	return authv1connect.NewAuthPublicServiceClient(http.DefaultClient, authServer.URL)
 }
+
 func newTodoClient(token string) todov1connect.TodoServiceClient {
 	return todov1connect.NewTodoServiceClient(
 		http.DefaultClient,
